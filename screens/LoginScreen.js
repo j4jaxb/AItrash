@@ -314,7 +314,6 @@ export default function LoginScreen({ onLogin }) {
           
           
           {/* Password Requirements */}
-
             {passwordRequirements.map((req) => {
               const isMet = checkPasswordRequirement(password, req.key);
               return (

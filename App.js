@@ -31,7 +31,7 @@ function MainTabs({ user, setUser }) {
           paddingBottom: 10 
         },
         tabBarActiveTintColor: '#059669', // สีเขียวตามรูปต้นฉบับ
-        tabBarInactiveTintColor: '#999999',
+        tabBarInactiveTintColor: '#000',
         tabBarLabelStyle: { fontSize: 11, marginBottom: 5 },
         tabBarIcon: ({ color, size, focused }) => {
           if (route.name === 'Scan') {

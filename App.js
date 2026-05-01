@@ -30,13 +30,8 @@ function MainTabs({ user, setUser }) {
           borderTopColor: '#eee',
           paddingBottom: 10 
         },
-<<<<<<< HEAD
-        tabBarActiveTintColor: '#004743',
+        tabBarActiveTintColor: '#004743', // สีเขียวตามรูปต้นฉบับ
         tabBarInactiveTintColor: '#000',
-=======
-        tabBarActiveTintColor: '#059669', // สีเขียวตามรูปต้นฉบับ
-        tabBarInactiveTintColor: '#ccc',
->>>>>>> 5302b9084f2d10350f30af062ee001bf76eb7328
         tabBarLabelStyle: { fontSize: 11, marginBottom: 5 },
         tabBarIcon: ({ color, size, focused }) => {
           if (route.name === 'Scan') {
@@ -45,7 +40,7 @@ function MainTabs({ user, setUser }) {
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: '#059669',
+                backgroundColor: '#004743',
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginBottom: 35, // ดันปุ่มขึ้นข้างบน

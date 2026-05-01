@@ -24,7 +24,7 @@ const { width } = Dimensions.get("window");
 // --- ดึงไอคอนจากหน้าโฮมที่คุณใช้อยู่มาใส่ใน Recent Scans ---
 const getCategoryIcon = (categoryName) => {
   const iconSize = 28;
-  const iconColor = "#1A1A1A";
+  const iconColor = "#004743";
   switch (categoryName) {
     case "PETE": return <MaterialCommunityIcons name="water-outline" size={iconSize} color={iconColor} />;
     case "HDPE": return <MaterialCommunityIcons name="bottle-tonic-outline" size={iconSize} color={iconColor} />;
@@ -130,7 +130,7 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
         <TouchableOpacity
           onPress={() => navigation.navigate("EditProfile", { user, setUser })}
         >
-          <Ionicons name="settings-sharp" size={22} color="#555" />
+          <Ionicons name="settings-sharp" size={22} color="#004743" />
         </TouchableOpacity>
       </View>
 
@@ -146,7 +146,7 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
             {user?.profile ? (
               <Image source={{ uri: user.profile }} style={styles.avatarImage} />
             ) : (
-              <Ionicons name="person" size={70} color="#000" />
+              <Ionicons name="person" size={70} color="#004743" />
             )}
           </TouchableOpacity>
           <Text style={[styles.userNameText, { fontFamily: "BalooTammudu2_700Bold" }]}>
@@ -223,13 +223,13 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
 
           {/* ปุ่มที่เพิ่มมาให้เหมือนในรูป */}
           <TouchableOpacity style={styles.supportBtn}>
-            <Ionicons name="help-circle-outline" size={24} color="#555" />
-            <Text style={styles.supportText}>Help & Support</Text>
+            <Ionicons name="help-circle-outline" size={24} color="#004743" />
+            <Text style={[styles.supportText, { color: "#004743" }]}>Help & Support</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.logoutFullBtn} onPress={onLogout}>
-            <MaterialCommunityIcons name="logout-variant" size={22} color="#555" />
-            <Text style={styles.logoutFullText}>Log Out</Text>
+            <MaterialCommunityIcons name="logout-variant" size={22} color="#004743" />
+            <Text style={[styles.logoutFullText, { color: "#004743" }]}>Log Out</Text>
           </TouchableOpacity>
         </View>
 
@@ -250,7 +250,7 @@ const StatBox = ({ num, label }) => (
 const BadgeItem = ({ title, icon }) => (
   <View style={styles.badgeItemBox}>
     <View style={styles.badgeCircleGray}>
-      <MaterialCommunityIcons name={icon} size={24} color="#CCC" />
+      <MaterialCommunityIcons name={icon} size={24} color="#B5CAC9" />
     </View>
     <Text style={[styles.badgeText, { color: "#AAA", marginBottom: 2 }]}>ยังไม่ได้รับ</Text>
     <Text style={[styles.badgeText, { fontSize: 9, color: "#666" }]}>{title.replace(' ', '\n')}</Text>
@@ -260,10 +260,10 @@ const BadgeItem = ({ title, icon }) => (
 const MenuLink = ({ icon, title, onPress }) => (
   <TouchableOpacity style={styles.menuItemRow} onPress={onPress}>
     <View style={styles.menuLeftSide}>
-      <Ionicons name={icon} size={22} color="#555" />
+      <Ionicons name={icon} size={22} color="#004743" />
       <Text style={styles.menuItemText}>{title}</Text>
     </View>
-    <Ionicons name="chevron-forward" size={18} color="#CCC" />
+    <Ionicons name="chevron-forward" size={18} color="#004743" />
   </TouchableOpacity>
 );
 
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   navTitle: { 
     fontSize: 18, 
     fontWeight: "500", 
-    color: "#333" 
+    color: "#004743" 
   },
   content: { 
     flex: 1 
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   userNameText: { 
     fontSize: 22, 
     fontWeight: "bold", 
-    color: "#000" 
+    color: "#004743" 
   },
   subImpactText: { 
     fontSize: 13, 
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   statBox: { 
     width: (width - 55) / 2, 
     height: 80, 
-    backgroundColor: "#FFF", 
+    backgroundColor: "#CFDAD9", 
     borderRadius: 10, 
     borderWidth: 1, 
     borderColor: "#F0F0F0", 
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   statNum: { 
     fontSize: 22, 
     fontWeight: "bold", 
-    color: "#000" 
+    color: "#004743" 
   },
   statLabel: { 
     fontSize: 12, 
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   sectionTitle: { 
     fontSize: 18, 
     fontWeight: "600", 
-    color: "#000" 
+    color: "#004743" 
   },
   viewAllText: { 
     fontSize: 13, 
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     width: 50, 
     height: 50, 
     borderRadius: 25, 
-    backgroundColor: "#F7F7F7", 
+    backgroundColor: "#ECF1F1", 
     justifyContent: "center", 
     alignItems: "center", 
     marginBottom: 8 
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   scanIconPlaceholder: { 
     width: 60, 
     height: 60, 
-    backgroundColor: "#D9D9D9", 
+    backgroundColor: "#C7D7D6", 
     borderRadius: 8, 
     justifyContent: "center", 
     alignItems: "center" 
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   scanMainName: { 
     fontSize: 15, 
     fontWeight: "bold", 
-    color: "#000" 
+    color: "#004743" 
   },
   scanSubDetail: { 
     fontSize: 12, 
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     width: 30, 
     height: 30, 
     borderRadius: 15, 
-    backgroundColor: "#1A1A1A", 
+    backgroundColor: "#16A34A", 
     justifyContent: "center", 
     alignItems: "center" 
   },
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   menuItemText: { 
     marginLeft: 15, 
     fontSize: 16, 
-    color: "#333" 
+    color: "#004743" 
   },
   supportBtn: { 
     flexDirection: "row", 
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   supportText: { 
     marginLeft: 10, 
     fontSize: 16, 
-    color: "#333", 
+    color: "#004743", 
     fontWeight: "500" 
   },
   logoutFullBtn: { 
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   logoutFullText: { 
     marginLeft: 10, 
     fontSize: 16, 
-    color: "#333", 
+    color: "#004743", 
     fontWeight: "500" 
   }
 });

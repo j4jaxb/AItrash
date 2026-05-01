@@ -268,43 +268,231 @@ const MenuLink = ({ icon, title, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#FFF" },
-  topNavBar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, height: 50, borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
-  navTitle: { fontSize: 18, fontWeight: "500", color: "#333" },
-  content: { flex: 1 },
-  profileHeader: { alignItems: "center", marginTop: 30, marginBottom: 30 },
-  avatarGrayBox: { width: 120, height: 120, borderRadius: 60, backgroundColor: "#EFEFEF", justifyContent: "center", alignItems: "center", marginBottom: 15 },
-  avatarImage: { width: 120, height: 120, borderRadius: 60, resizeMode: "cover" },
-  userNameText: { fontSize: 22, fontWeight: "bold", color: "#000" },
-  subImpactText: { fontSize: 13, color: "#666", marginTop: 5 },
-  statsGrid: { paddingHorizontal: 20, marginBottom: 30 },
-  statsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 15 },
-  statBox: { width: (width - 55) / 2, height: 80, backgroundColor: "#FFF", borderRadius: 10, borderWidth: 1, borderColor: "#F0F0F0", justifyContent: "center", alignItems: "center", elevation: 1 },
-  statNum: { fontSize: 22, fontWeight: "bold", color: "#000" },
-  statLabel: { fontSize: 12, color: "#999", marginTop: 2 },
-  sectionContainer: { paddingHorizontal: 20, marginBottom: 30 },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 15 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", color: "#000" },
-  viewAllText: { fontSize: 13, color: "#999" },
-  achievementRow: { flexDirection: "row", justifyContent: "space-around" },
-  badgeItemBox: { alignItems: "center", width: width / 4 },
-  badgeCircleGray: { width: 50, height: 50, borderRadius: 25, backgroundColor: "#F7F7F7", justifyContent: "center", alignItems: "center", marginBottom: 8 },
-  badgeText: { fontSize: 10, textAlign: "center" },
-  recentScansArea: { backgroundColor: "#F9F9F9", paddingHorizontal: 20, paddingVertical: 20 },
-  scanCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#FFF", padding: 15, borderRadius: 12, borderWidth: 1, borderColor: "#EEE", marginBottom: 12 },
-  scanIconPlaceholder: { width: 60, height: 60, backgroundColor: "#D9D9D9", borderRadius: 8, justifyContent: "center", alignItems: "center" },
-  scanContent: { flex: 1, marginLeft: 15 },
-  scanMainName: { fontSize: 15, fontWeight: "bold", color: "#000" },
-  scanSubDetail: { fontSize: 12, color: "#666", marginVertical: 3 },
-  scanDateText: { fontSize: 11, color: "#999" },
-  checkCircleBlack: { width: 30, height: 30, borderRadius: 15, backgroundColor: "#1A1A1A", justifyContent: "center", alignItems: "center" },
-  settingsArea: { paddingHorizontal: 20, marginTop: 30 },
-  settingsTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 20 },
-  menuItemRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: "#F5F5F5" },
-  menuLeftSide: { flexDirection: "row", alignItems: "center" },
-  menuItemText: { marginLeft: 15, fontSize: 16, color: "#333" },
-  supportBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 15, marginTop: 20, backgroundColor: "#FFF", borderRadius: 10, borderWidth: 1, borderColor: "#F0F0F0" },
-  supportText: { marginLeft: 10, fontSize: 16, color: "#333", fontWeight: "500" },
-  logoutFullBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 15, marginTop: 15 },
-  logoutFullText: { marginLeft: 10, fontSize: 16, color: "#333", fontWeight: "500" }
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: "#FFF" 
+  },
+  topNavBar: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    paddingHorizontal: 20, 
+    height: 50, 
+    borderBottomWidth: 1, 
+    borderBottomColor: "#F0F0F0" 
+  },
+  navTitle: { 
+    fontSize: 18, 
+    fontWeight: "500", 
+    color: "#333" 
+  },
+  content: { 
+    flex: 1 
+  },
+  profileHeader: { 
+    alignItems: "center", 
+    marginTop: 30, 
+    marginBottom: 30 
+  },
+  avatarGrayBox: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    backgroundColor: "#EFEFEF", 
+    justifyContent: "center", 
+    alignItems: "center", 
+    marginBottom: 15 
+  },
+  avatarImage: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    resizeMode: "cover" 
+  },
+  userNameText: { 
+    fontSize: 22, 
+    fontWeight: "bold", 
+    color: "#000" 
+  },
+  subImpactText: { 
+    fontSize: 13, 
+    color: "#666", 
+    marginTop: 5 
+  },
+  statsGrid: { 
+    paddingHorizontal: 20, 
+    marginBottom: 30 
+  },
+  statsRow: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    marginBottom: 15 
+  },
+  statBox: { 
+    width: (width - 55) / 2, 
+    height: 80, 
+    backgroundColor: "#FFF", 
+    borderRadius: 10, 
+    borderWidth: 1, 
+    borderColor: "#F0F0F0", 
+    justifyContent: "center", 
+    alignItems: "center", 
+    elevation: 1 
+  },
+  statNum: { 
+    fontSize: 22, 
+    fontWeight: "bold", 
+    color: "#000" 
+  },
+  statLabel: { 
+    fontSize: 12, 
+    color: "#999", 
+    marginTop: 2 
+  },
+  sectionContainer: { 
+    paddingHorizontal: 20, 
+    marginBottom: 30 
+  },
+  sectionHeader: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    marginBottom: 15 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: "600", 
+    color: "#000" 
+  },
+  viewAllText: { 
+    fontSize: 13, 
+    color: "#999" 
+  },
+  achievementRow: { 
+    flexDirection: "row", 
+    justifyContent: "space-around" 
+  },
+  badgeItemBox: { 
+    alignItems: "center", 
+    width: width / 4 
+  },
+  badgeCircleGray: { 
+    width: 50, 
+    height: 50, 
+    borderRadius: 25, 
+    backgroundColor: "#F7F7F7", 
+    justifyContent: "center", 
+    alignItems: "center", 
+    marginBottom: 8 
+  },
+  badgeText: { 
+    fontSize: 10, 
+    textAlign: "center" 
+  },
+  recentScansArea: { 
+    backgroundColor: "#F9F9F9", 
+    paddingHorizontal: 20, 
+    
+    paddingVertical: 20 
+  },
+  scanCard: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    backgroundColor: "#FFF", 
+    padding: 15, 
+    borderRadius: 12, 
+    borderWidth: 1, 
+    borderColor: "#EEE", 
+    marginBottom: 12 
+  },
+  scanIconPlaceholder: { 
+    width: 60, 
+    height: 60, 
+    backgroundColor: "#D9D9D9", 
+    borderRadius: 8, 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
+  scanContent: { 
+    flex: 1, 
+    marginLeft: 15 
+  },
+  scanMainName: { 
+    fontSize: 15, 
+    fontWeight: "bold", 
+    color: "#000" 
+  },
+  scanSubDetail: { 
+    fontSize: 12, 
+    color: "#666", 
+    marginVertical: 3 
+  },
+  scanDateText: { 
+    fontSize: 11, 
+    color: "#999" 
+  },
+  checkCircleBlack: { 
+    width: 30, 
+    height: 30, 
+    borderRadius: 15, 
+    backgroundColor: "#1A1A1A", 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
+  settingsArea: { 
+    paddingHorizontal: 20, 
+    marginTop: 30 
+  },
+  settingsTitle: { 
+    fontSize: 18, 
+    fontWeight: "bold", 
+    marginBottom: 20 
+  },
+  menuItemRow: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    paddingVertical: 15, 
+    borderBottomWidth: 1, 
+    borderBottomColor: "#F5F5F5" 
+  },
+  menuLeftSide: { 
+    flexDirection: "row", 
+    alignItems: "center" 
+  },
+  menuItemText: { 
+    marginLeft: 15, 
+    fontSize: 16, 
+    color: "#333" 
+  },
+  supportBtn: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingVertical: 15, 
+    marginTop: 20, 
+    backgroundColor: "#FFF", 
+    borderRadius: 10, 
+    borderWidth: 1, 
+    borderColor: "#F0F0F0" 
+  },
+  supportText: { 
+    marginLeft: 10, 
+    fontSize: 16, 
+    color: "#333", 
+    fontWeight: "500" 
+  },
+  logoutFullBtn: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingVertical: 15, 
+    marginTop: 15 
+  },
+  logoutFullText: { 
+    marginLeft: 10, 
+    fontSize: 16, 
+    color: "#333", 
+    fontWeight: "500" 
+  }
 });

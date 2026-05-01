@@ -30,7 +30,7 @@ function MainTabs({ user, setUser }) {
           borderTopColor: '#eee',
           paddingBottom: 10 
         },
-        tabBarActiveTintColor: '#059669', // สีเขียวตามรูปต้นฉบับ
+        tabBarActiveTintColor: '#004743',
         tabBarInactiveTintColor: '#000',
         tabBarLabelStyle: { fontSize: 11, marginBottom: 5 },
         tabBarIcon: ({ color, size, focused }) => {

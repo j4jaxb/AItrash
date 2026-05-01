@@ -44,7 +44,7 @@ const formatScanDate = (dateString) => {
 // ฟังก์ชันเลือกไอคอน
 const getCategoryIcon = (categoryName) => {
   const iconSize = 24;
-  const iconColor = "#1A1A1A";
+  const iconColor = "#004743";
 
   switch (categoryName) {
     case "PETE":

@@ -22,7 +22,7 @@ import { loadStreak } from "../utils/streakService";
 
 const { width } = Dimensions.get("window");
 
-// ฟังก์ชันจัดการรูปแบบเวลา
+// ================= FORMAT DATE =================
 const formatScanDate = (dateString) => {
   const now = new Date();
   const scanDate = new Date(dateString);
@@ -41,7 +41,7 @@ const formatScanDate = (dateString) => {
   return scanDate.toLocaleDateString("en-GB");
 };
 
-// ฟังก์ชันเลือกไอคอน
+// ================= ICON =================
 const getCategoryIcon = (categoryName) => {
   const iconSize = 24;
   const iconColor = "#004743";
@@ -113,7 +113,11 @@ const getCategoryIcon = (categoryName) => {
       );
     case "Metal":
       return (
-        <MaterialCommunityIcons name="can" size={iconSize} color={iconColor} />
+        <MaterialCommunityIcons
+          name="can"
+          size={iconSize}
+          color={iconColor}
+        />
       );
     case "Paper":
       return (
@@ -170,9 +174,10 @@ export default function HomeScreen({ user, navigation }) {
 
   const loadData = async () => {
     if (!user?.id) return;
+
     setLoading(true);
+
     try {
-      // Load Recent Scans
       const { data: recentData } = await supabase
         .from("result")
         .select(`id, scan_date, material (material_name, recycle)`)
@@ -182,7 +187,6 @@ export default function HomeScreen({ user, navigation }) {
 
       setResults(recentData || []);
 
-      // Load Stats
       const { count: itemsCount } = await supabase
         .from("result")
         .select("*", { count: "exact", head: true })
@@ -194,16 +198,17 @@ export default function HomeScreen({ user, navigation }) {
         .eq("user_id", user.id);
 
       let categoriesCount = 0;
+
       if (categoriesData) {
         const unique = new Set(
           categoriesData
             .map((item) => item.material?.material_name)
-            .filter(Boolean),
+            .filter(Boolean)
         );
+
         categoriesCount = unique.size;
       }
 
-      // Load Streak
       const streak = await loadStreak(user.id);
 
       setStats((prev) => ({
@@ -232,7 +237,7 @@ export default function HomeScreen({ user, navigation }) {
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#1A1A1A" />
+        <ActivityIndicator size="large" color="#0F3D34" />
       </View>
     );
   }
@@ -257,6 +262,7 @@ export default function HomeScreen({ user, navigation }) {
                 <Ionicons name="person" size={20} color="white" />
               )}
             </View>
+
             <View style={{ marginLeft: 10 }}>
               <Text style={styles.streakLabel}>SORTING STREAK</Text>
               <Text style={styles.streakValue}>
@@ -264,6 +270,7 @@ export default function HomeScreen({ user, navigation }) {
               </Text>
             </View>
           </View>
+
           <View style={styles.xpBadge}>
             <MaterialCommunityIcons name="leaf" size={14} color="#FFF" />
             <Text style={styles.xpText}>{`${stats.xp} XP`}</Text>
@@ -271,10 +278,11 @@ export default function HomeScreen({ user, navigation }) {
         </View>
 
         <Text
-          style={[styles.welcomeTitle, { fontFamily: "BalooTammudu2_700Bold", color: "#004743" }]}
+          style={[styles.welcomeTitle, { fontFamily: "BalooTammudu2_700Bold" }]}
         >
           Welcome Back!
         </Text>
+
         <Text style={styles.subTitle}>
           Start scanning to make a difference today
         </Text>
@@ -285,17 +293,19 @@ export default function HomeScreen({ user, navigation }) {
             <Text style={styles.statNum}>{stats.itemsScanned}</Text>
             <Text style={styles.statLabel}>Items Scanned</Text>
           </View>
+
           <View style={styles.statCard}>
             <Text style={styles.statNum}>{`${stats.accuracy}%`}</Text>
             <Text style={styles.statLabel}>Accuracy</Text>
           </View>
+
           <View style={styles.statCard}>
             <Text style={styles.statNum}>{stats.categories}</Text>
             <Text style={styles.statLabel}>Categories</Text>
           </View>
         </View>
 
-        {/* BUTTONS */}
+        {/* BUTTON */}
         <TouchableOpacity
           style={styles.mainBtnDark}
           onPress={() => navigation.navigate("Scan")}
@@ -306,15 +316,18 @@ export default function HomeScreen({ user, navigation }) {
 
         <TouchableOpacity
           style={styles.mainBtnOutline}
-          onPress={() => navigation.navigate("Scan", { autoPickGallery: true })}
+          onPress={() =>
+            navigation.navigate("Scan", { autoPickGallery: true })
+          }
         >
-          <Ionicons name="image" size={20} color="#333" />
+          <Ionicons name="image" size={20} color="#0F3D34" />
           <Text style={styles.mainBtnTextDark}>Upload from Gallery</Text>
         </TouchableOpacity>
 
-        {/* CATEGORIES */}
+        {/* CATEGORY */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recyclable Categories</Text>
+
           <TouchableOpacity
             onPress={() => navigation.navigate("CategoryHistory", { user })}
           >
@@ -334,16 +347,20 @@ export default function HomeScreen({ user, navigation }) {
                 })
               }
             >
-              <View style={styles.catIconBox}>{getCategoryIcon(cat.name)}</View>
+              <View style={styles.catIconBox}>
+                {getCategoryIcon(cat.name)}
+              </View>
+
               <Text style={styles.catName}>{cat.name}</Text>
               <Text style={styles.catSub}>{cat.sub}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* RECENT SCANS */}
+        {/* RECENT */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Scans</Text>
+
           <TouchableOpacity
             onPress={() => navigation.navigate("ScanHistory", { user })}
           >
@@ -352,24 +369,28 @@ export default function HomeScreen({ user, navigation }) {
         </View>
 
         {loading ? (
-          <ActivityIndicator style={{ margin: 20 }} />
+          <ActivityIndicator style={{ margin: 20 }} color="#0F3D34" />
         ) : (
           results.map((item) => (
             <View key={item.id} style={styles.scanCard}>
               <View style={styles.scanIconBox}>
                 {getCategoryIcon(item.material?.material_name)}
               </View>
+
               <View style={styles.scanDetails}>
                 <Text style={styles.scanName}>
                   {item.material?.material_name || "Unknown Item"}
                 </Text>
+
                 <Text style={styles.scanSub}>
                   {item.material?.recycle || "Processing..."}
                 </Text>
+
                 <Text style={styles.scanTime}>
                   {formatScanDate(item.scan_date)}
                 </Text>
               </View>
+
               <View style={styles.checkCircle}>
                 <Ionicons name="checkmark" size={14} color="white" />
               </View>
@@ -383,62 +404,86 @@ export default function HomeScreen({ user, navigation }) {
   );
 }
 
-// ส่วน Stylesheet ที่สำคัญที่สุด (ต้องอยู่ล่างสุดและถูกเรียกใช้จาก react-native)
+// ================= STYLE =================
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#FFF" },
+  safeArea: { flex: 1, backgroundColor: "#F6F8F7" },
   container: { flex: 1, paddingHorizontal: 20 },
+
   topHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 15,
   },
+
   userInfo: { flexDirection: "row", alignItems: "center" },
+
   avatarPlaceholder: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#004743",
+    backgroundColor: "#0F3D34",
     justifyContent: "center",
     alignItems: "center",
   },
+
   avatarImage: {
     width: 36,
     height: 36,
     borderRadius: 18,
     resizeMode: "cover",
   },
-  streakLabel: { fontSize: 10, color: "#AAA", fontWeight: "bold" },
-  streakValue: { fontSize: 14, color: "#333", fontWeight: "bold" },
+
+  streakLabel: { fontSize: 10, color: "#8D9994", fontWeight: "bold" },
+  streakValue: { fontSize: 14, color: "#0F3D34", fontWeight: "bold" },
+
   xpBadge: {
     flexDirection: "row",
-    backgroundColor: "#004743",
+    backgroundColor: "#1E6C5B",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     alignItems: "center",
   },
-  xpText: { color: "#FAFAFA", fontSize: 12, fontWeight: "bold", marginLeft: 4 },
-  welcomeTitle: { fontSize: 24, fontWeight: "bold", marginTop: 20 },
-  subTitle: { color: "#666", fontSize: 14, marginBottom: 20 },
+
+  xpText: { color: "#FFF", fontSize: 12, fontWeight: "bold", marginLeft: 4 },
+
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginTop: 20,
+    color: "#0F3D34",
+  },
+
+  subTitle: { color: "#6E7B76", fontSize: 14, marginBottom: 20 },
+
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
   },
+
   statCard: {
     width: (width - 60) / 3,
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFFFFF",
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#E4ECE8",
     alignItems: "center",
   },
-  statNum: { fontSize: 18, fontWeight: "bold" },
-  statLabel: { fontSize: 10, color: "#888", marginTop: 4, textAlign: "center" },
+
+  statNum: { fontSize: 18, fontWeight: "bold", color: "#0F3D34" },
+
+  statLabel: {
+    fontSize: 10,
+    color: "#7C8A85",
+    marginTop: 4,
+    textAlign: "center",
+  },
+
   mainBtnDark: {
-    backgroundColor: "#004743",
+    backgroundColor: "#0F3D34",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
@@ -446,10 +491,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
+
   mainBtnTextLight: { color: "#FFF", fontWeight: "bold", marginLeft: 8 },
+
   mainBtnOutline: {
     borderWidth: 1.5,
-    borderColor: "#004743",
+    borderColor: "#0F3D34",
+    backgroundColor: "#FFFFFF",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
@@ -457,68 +505,84 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 25,
   },
-  mainBtnTextDark: { color: "#004743", fontWeight: "bold", marginLeft: 8 },
+
+  mainBtnTextDark: { color: "#0F3D34", fontWeight: "bold", marginLeft: 8 },
+
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 15,
   },
-  sectionTitle: { fontSize: 18, fontWeight: "bold" },
-  seeMoreText: { color: "#888", fontSize: 14 },
+
+  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#0F3D34" },
+
+  seeMoreText: { color: "#2B7A63", fontSize: 14 },
+
   categoryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
+
   catItem: {
     width: (width - 55) / 2,
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFFFFF",
     padding: 15,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#E4ECE8",
     marginBottom: 15,
     alignItems: "flex-start",
   },
+
   catIconBox: {
     width: 45,
     height: 45,
-    backgroundColor: "#F0F0F0",
+    backgroundColor: "#EAF4F0",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
   },
-  catName: { fontWeight: "bold", fontSize: 14 },
-  catSub: { fontSize: 10, color: "#AAA" },
+
+  catName: { fontWeight: "bold", fontSize: 14, color: "#0F3D34" },
+
+  catSub: { fontSize: 10, color: "#8E9B96" },
+
   scanCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFFFFF",
     padding: 15,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#E4ECE8",
     marginBottom: 12,
   },
+
   scanIconBox: {
     width: 55,
     height: 55,
-    backgroundColor: "#EBEBEB",
+    backgroundColor: "#EAF4F0",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
+
   scanDetails: { flex: 1, marginLeft: 15 },
-  scanName: { fontWeight: "bold", fontSize: 15 },
-  scanSub: { fontSize: 12, color: "#666", marginVertical: 2 },
-  scanTime: { fontSize: 11, color: "#AAA" },
+
+  scanName: { fontWeight: "bold", fontSize: 15, color: "#0F3D34" },
+
+  scanSub: { fontSize: 12, color: "#5E6E69", marginVertical: 2 },
+
+  scanTime: { fontSize: 11, color: "#98A59F" },
+
   checkCircle: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#222",
+    backgroundColor: "#1E6C5B",
     justifyContent: "center",
     alignItems: "center",
   },

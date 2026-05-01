@@ -271,7 +271,7 @@ export default function HomeScreen({ user, navigation }) {
         </View>
 
         <Text
-          style={[styles.welcomeTitle, { fontFamily: "BalooTammudu2_700Bold" }]}
+          style={[styles.welcomeTitle, { fontFamily: "BalooTammudu2_700Bold", color: "#004743" }]}
         >
           Welcome Back!
         </Text>
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: "#004743",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -412,13 +412,13 @@ const styles = StyleSheet.create({
   streakValue: { fontSize: 14, color: "#333", fontWeight: "bold" },
   xpBadge: {
     flexDirection: "row",
-    backgroundColor: "#9BB1C9",
+    backgroundColor: "#004743",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     alignItems: "center",
   },
-  xpText: { color: "#FFF", fontSize: 12, fontWeight: "bold", marginLeft: 4 },
+  xpText: { color: "#FAFAFA", fontSize: 12, fontWeight: "bold", marginLeft: 4 },
   welcomeTitle: { fontSize: 24, fontWeight: "bold", marginTop: 20 },
   subTitle: { color: "#666", fontSize: 14, marginBottom: 20 },
   statsRow: {
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   statNum: { fontSize: 18, fontWeight: "bold" },
   statLabel: { fontSize: 10, color: "#888", marginTop: 4, textAlign: "center" },
   mainBtnDark: {
-    backgroundColor: "#1A1A1A",
+    backgroundColor: "#004743",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   mainBtnTextLight: { color: "#FFF", fontWeight: "bold", marginLeft: 8 },
   mainBtnOutline: {
     borderWidth: 1.5,
-    borderColor: "#1A1A1A",
+    borderColor: "#004743",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 25,
   },
-  mainBtnTextDark: { color: "#1A1A1A", fontWeight: "bold", marginLeft: 8 },
+  mainBtnTextDark: { color: "#004743", fontWeight: "bold", marginLeft: 8 },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

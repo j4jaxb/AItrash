@@ -7,7 +7,8 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  ActivityIndicator
 } from 'react-native';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -312,7 +313,260 @@ export default function LoginScreen({ onLogin }) {
 
           </View>
 
+          <TouchableOpacity
+            style={{ marginTop: 16 }}
+            onPress={() => setMode('forgotPassword')}
+          >
+            <Text style={[styles.switchInline, { textAlign: 'center' }]}>ลืมรหัสผ่าน?</Text>
+          </TouchableOpacity>
+
         </>
+      )}
+
+      {mode === 'register' && (
+        <>
+
+          <Text style={styles.title}>ลงทะเบียน</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#A1AAA6"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="ชื่อ"
+            placeholderTextColor="#A1AAA6"
+            value={firstName}
+            onChangeText={setFirstName}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="นามสกุล"
+            placeholderTextColor="#A1AAA6"
+            value={lastName}
+            onChangeText={setLastName}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#A1AAA6"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          <View style={styles.button}>
+            <Button
+              title={isLoadingSendCode ? 'กำลังส่ง...' : 'Register'}
+              onPress={onSubmit}
+              color="#FFFFFF"
+              disabled={isLoadingSendCode}
+            />
+          </View>
+
+          {isLoadingSendCode && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#1D6B5C" />
+              <Text style={styles.loadingText}>กำลังส่งรหัสยืนยัน...</Text>
+            </View>
+          )}
+
+          <View style={styles.switchRow}>
+
+            <Text style={styles.hintInline}>
+              มีบัญชีอยู่แล้ว?
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setMode('login')}
+            >
+              <Text style={styles.switchInline}>
+                เข้าสู่ระบบ
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+
+        </>
+      )}
+
+      {mode === 'verify' && (
+        <>
+
+          <Text style={styles.title}>ยืนยันรหัส</Text>
+
+          <Text style={[styles.hintInline, { marginBottom: 16, textAlign: 'center' }]}>กรุณากรอกรหัสยืนยัน 6 หลักที่ส่งไปยังอีเมลของคุณ</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="รหัสยืนยัน 6 หลัก"
+            placeholderTextColor="#A1AAA6"
+            value={verificationCode}
+            onChangeText={setVerificationCode}
+            keyboardType="numeric"
+            maxLength={6}
+          />
+
+          <View style={styles.button}>
+            <Button
+              title="ยืนยัน"
+              onPress={onSubmit}
+              color="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+
+            <Text style={styles.hintInline}>
+              ต้องการกลับไป?
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setMode('login')}
+            >
+              <Text style={styles.switchInline}>
+                กลับเข้าสู่ระบบ
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+
+        </>
+      )}
+
+      {mode === 'forgotPassword' && (
+        <>
+
+          <Text style={styles.title}>ลืมรหัสผ่าน</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#A1AAA6"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <View style={styles.button}>
+            <Button
+              title={isLoadingSendCode ? 'กำลังส่ง...' : 'ส่งรหัสยืนยัน'}
+              onPress={onSubmit}
+              color="#FFFFFF"
+              disabled={isLoadingSendCode}
+            />
+          </View>
+
+          {isLoadingSendCode && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#1D6B5C" />
+              <Text style={styles.loadingText}>กำลังส่งรหัสยืนยัน...</Text>
+            </View>
+          )}
+
+          <View style={styles.switchRow}>
+            <TouchableOpacity onPress={() => setMode('login')}>
+              <Text style={styles.switchInline}>กลับเข้าสู่ระบบ</Text>
+            </TouchableOpacity>
+          </View>
+
+        </>
+      )}
+
+      {mode === 'resetPassword' && (
+        <>
+
+          <Text style={styles.title}>ยืนยันรหัสเพื่อตั้งรหัสใหม่</Text>
+
+          <Text style={[styles.hintInline, { marginBottom: 16, textAlign: 'center' }]}>รหัสยืนยันถูกส่งไปที่ {tempEmail}</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="รหัสยืนยัน 6 หลัก"
+            placeholderTextColor="#A1AAA6"
+            value={verificationCode}
+            onChangeText={setVerificationCode}
+            keyboardType="numeric"
+            maxLength={6}
+          />
+
+          <View style={styles.button}>
+            <Button
+              title="ยืนยัน"
+              onPress={onSubmit}
+              color="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+            <TouchableOpacity onPress={() => setMode('login')}>
+              <Text style={styles.switchInline}>กลับเข้าสู่ระบบ</Text>
+            </TouchableOpacity>
+          </View>
+
+        </>
+      )}
+
+      {mode === 'setNewPassword' && (
+        <ScrollView style={styles.scrollViewContainer} contentContainerStyle={styles.scrollViewContent}>
+          <Text style={styles.title}>ตั้งรหัสผ่านใหม่</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="รหัสผ่านใหม่"
+            placeholderTextColor="#A1AAA6"
+            secureTextEntry
+            value={newPassword}
+            onChangeText={setNewPassword}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="ยืนยันรหัสผ่านใหม่"
+            placeholderTextColor="#A1AAA6"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+
+          <View style={styles.requirementsBox}>
+            <Text style={styles.requirementsTitle}>ความต้องการรหัสผ่าน</Text>
+            {passwordRequirements.map((req) => {
+              const isMet = checkPasswordRequirement(newPassword, req.key);
+              return (
+                <View key={req.key} style={styles.requirementRow}>
+                  <MaterialCommunityIcons
+                    name={isMet ? 'check-circle' : 'circle-outline'}
+                    size={20}
+                    color={isMet ? '#1E6C5B' : '#9AA8A3'}
+                  />
+                  <Text style={[styles.requirementText, isMet && styles.requirementMet]}>{req.label}</Text>
+                </View>
+              );
+            })}
+          </View>
+
+          <View style={styles.button}>
+            <Button
+              title="เปลี่ยนรหัสผ่าน"
+              onPress={onSubmit}
+              color="#FFFFFF"
+            />
+          </View>
+
+          <TouchableOpacity onPress={() => setMode('login')}>
+            <Text style={[styles.switchInline, { marginTop: 16, textAlign: 'center' }]}>กลับเข้าสู่ระบบ</Text>
+          </TouchableOpacity>
+        </ScrollView>
       )}
 
     </View>
@@ -421,6 +675,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 40
+  },
+
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12
+  },
+  loadingText: {
+    marginLeft: 10,
+    color: '#1D6B5C',
+    fontSize: 14
   },
 
   bottomLink: {

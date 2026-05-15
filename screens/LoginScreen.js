@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,7 @@ export default function LoginScreen({ onLogin }) {
 
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoadingSendCode, setIsLoadingSendCode] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [tempEmail, setTempEmail] = useState('');
 
@@ -54,6 +55,7 @@ export default function LoginScreen({ onLogin }) {
     }
 
     try {
+      setIsLoggingIn(true);
 
       const { data, error } = await supabase
         .from('user')
@@ -65,13 +67,16 @@ export default function LoginScreen({ onLogin }) {
 
       if (error) {
         Alert.alert('ไม่สำเร็จ', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+        setIsLoggingIn(false);
         return;
       }
 
       onLogin(data);
+      setIsLoggingIn(false);
 
     } catch (err) {
       Alert.alert('เซิร์ฟเวอร์ไม่พร้อมใช้งาน', 'กรุณาลองใหม่อีกครั้ง');
+      setIsLoggingIn(false);
     }
   };
 
@@ -291,11 +296,19 @@ export default function LoginScreen({ onLogin }) {
 
           <View style={styles.button}>
             <Button
-              title="Login"
+              title={isLoggingIn ? "กำลังเข้าสู่ระบบ..." : "Login"}
               onPress={onSubmit}
               color="#FFFFFF"
+              disabled={isLoggingIn}
             />
           </View>
+
+          {isLoggingIn && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#1D6B5C" />
+              <Text style={styles.loadingText}>กำลังเข้าสู่ระบบ...</Text>
+            </View>
+          )}
 
           <View style={styles.switchRow}>
 

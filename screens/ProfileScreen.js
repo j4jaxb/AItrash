@@ -18,6 +18,8 @@ import {
   BalooTammudu2_700Bold,
 } from "@expo-google-fonts/baloo-tammudu-2";
 import { supabase } from "../supabase";
+import { loadStreak, loadMaxStreak } from "../utils/streakService";
+import { calculateAchievements, calculateConsecutiveCorrect, calculateTotalPoints } from "../utils/achievementService";
 
 const { width } = Dimensions.get("window");
 
@@ -33,8 +35,11 @@ const getCategoryIcon = (categoryName) => {
     case "PP": return <MaterialCommunityIcons name="spoon-sugar" size={iconSize} color={iconColor} />;
     case "PS": return <MaterialCommunityIcons name="cup-outline" size={iconSize} color={iconColor} />;
     case "OTHER": return <MaterialCommunityIcons name="recycle-variant" size={iconSize} color={iconColor} />;
+    case "glass":
     case "Glass": return <MaterialCommunityIcons name="glass-fragile" size={iconSize} color={iconColor} />;
+    case "metal":
     case "Metal": return <MaterialCommunityIcons name="can" size={iconSize} color={iconColor} />;
+    case "paper":
     case "Paper": return <Ionicons name="document-text-outline" size={iconSize} color={iconColor} />;
     case "Non-recyclable": return <MaterialCommunityIcons name="trash-can-outline" size={iconSize} color={iconColor} />;
     default: return <MaterialCommunityIcons name="package-variant" size={iconSize} color={iconColor} />;
@@ -47,9 +52,13 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
   const [stats, setStats] = useState({
     totalScans: 0,
     achievements: 0,
-    itemsRecycled: 0,
+    points: 0,
     co2Saved: 0,
+    maxStreak: 0,
+    consecutiveCorrect: 0,
+    recycledCount: 0,
   });
+  const [achievementsList, setAchievementsList] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const [fontsLoaded] = useFonts({
@@ -73,23 +82,40 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
       // ดึงสถิติจริงจาก Supabase [cite: 4, 5, 8, 9]
       const { data: allData } = await supabase
         .from("result")
-        .select(`id, material (material_name, recycle)`)
+        .select(`id, scan_date, material (material_name, recycle)`)
         .eq("user_id", user.id);
 
       if (allData) {
         const total = allData.length;
+        const sevenPlastics = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS", "OTHER"];
+        
+        const consecutiveCorrect = calculateConsecutiveCorrect(allData);
+
         const recycledCount = allData.filter(item => 
-          item.material?.recycle?.toLowerCase() === "recycleable"
+          sevenPlastics.includes(item.material?.material_name?.toUpperCase())
         ).length;
+        
         const totalCO2 = allData.reduce((sum, item) => 
           sum + calculateCO2(item.material?.material_name), 0
         );
 
+        const streakCount = await loadStreak(user.id);
+        const maxStreakCount = await loadMaxStreak(user.id);
+        
+        const calculatedAchievements = calculateAchievements(allData, streakCount);
+        setAchievementsList(calculatedAchievements);
+        const unlockedCount = calculatedAchievements.filter(a => a.unlocked).length;
+
+        const totalPoints = calculateTotalPoints(allData, calculatedAchievements, consecutiveCorrect);
+
         setStats({
           totalScans: total,
-          achievements: 0, // เซตเป็น 0 ตามสั่ง [cite: 6, 7]
-          itemsRecycled: recycledCount,
+          achievements: unlockedCount,
+          points: totalPoints,
           co2Saved: totalCO2.toFixed(2),
+          maxStreak: maxStreakCount,
+          consecutiveCorrect: consecutiveCorrect,
+          recycledCount: recycledCount,
         });
       }
 
@@ -157,14 +183,18 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
           <Text style={styles.subImpactText}>You're making an environmental impact!</Text>
         </View>
 
-        {/* 4 Stats Grid (ดึงค่าจริง) [cite: 4, 6, 8, 10] */}
-        <View style={styles.statsGrid}>
+        {/* Stats Grid [cite: 10, 11] */}
+        <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
             <StatBox num={stats.totalScans} label="Total Scans" />
-            <StatBox num={stats.achievements} label="Achievements" />
+            <StatBox num={`${stats.achievements}/8`} label="Achievements" />
           </View>
           <View style={styles.statsRow}>
-            <StatBox num={stats.itemsRecycled} label="Items Recycled" />
+            <StatBox 
+              num={stats.points} 
+              label="คะแนนสะสม (XP)" 
+              onPress={() => navigation.navigate("Rewards", { user })}
+            />
             <StatBox num={`${stats.co2Saved}kg`} label="CO₂ Saved" />
           </View>
         </View>
@@ -173,13 +203,12 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Achievements</Text>
-            <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
           </View>
-          <View style={styles.achievementRow}>
-            <BadgeItem title="Recycling Starter" icon="leaf" />
-            <BadgeItem title="Eco Contributor" icon="recycle" />
-            <BadgeItem title="Sustainability Champion" icon="trophy-outline" />
-          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingBottom: 10 }}>
+            {achievementsList.map(ach => (
+              <BadgeItem key={ach.id} title={ach.title} icon={ach.icon} unlocked={ach.unlocked} />
+            ))}
+          </ScrollView>
         </View>
 
         {/* Recent Scans Section (พื้นหลังเทาอ่อนตามรูป) [cite: 17, 21] */}
@@ -217,12 +246,22 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
             title="Edit Profile"
             onPress={() => navigation.navigate("EditProfile")}
           />
-          <MenuLink icon="notifications-outline" title="Notifications" />
-          <MenuLink icon="shield-checkmark-outline" title="Privacy Settings" />
-          <MenuLink icon="information-circle-outline" title="About App" />
+          <MenuLink 
+            icon="shield-checkmark-outline" 
+            title="Privacy Settings" 
+            onPress={() => navigation.navigate("PrivacySettings")}
+          />
+          <MenuLink 
+            icon="information-circle-outline" 
+            title="About App" 
+            onPress={() => navigation.navigate("AboutApp")}
+          />
 
           {/* ปุ่มที่เพิ่มมาให้เหมือนในรูป */}
-          <TouchableOpacity style={styles.supportBtn}>
+          <TouchableOpacity 
+            style={styles.supportBtn}
+            onPress={() => navigation.navigate("HelpSupport")}
+          >
             <Ionicons name="help-circle-outline" size={24} color="#004743" />
             <Text style={[styles.supportText, { color: "#004743" }]}>Help & Support</Text>
           </TouchableOpacity>
@@ -240,20 +279,27 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
 }
 
 // Sub-components
-const StatBox = ({ num, label }) => (
-  <View style={styles.statBox}>
+const StatBox = ({ num, label, onPress }) => (
+  <TouchableOpacity 
+    style={styles.statBox} 
+    onPress={onPress} 
+    disabled={!onPress}
+    activeOpacity={onPress ? 0.7 : 1}
+  >
     <Text style={styles.statNum}>{num}</Text>
     <Text style={styles.statLabel}>{label}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
-const BadgeItem = ({ title, icon }) => (
-  <View style={styles.badgeItemBox}>
-    <View style={styles.badgeCircleGray}>
-      <MaterialCommunityIcons name={icon} size={24} color="#B5CAC9" />
+const BadgeItem = ({ title, icon, unlocked }) => (
+  <View style={[styles.badgeItemBox, { width: 100, marginRight: 15 }]}>
+    <View style={[styles.badgeCircleGray, unlocked && { backgroundColor: '#1E6C5B' }]}>
+      <MaterialCommunityIcons name={icon} size={28} color={unlocked ? "#FFF" : "#B5CAC9"} />
     </View>
-    <Text style={[styles.badgeText, { color: "#AAA", marginBottom: 2 }]}>ยังไม่ได้รับ</Text>
-    <Text style={[styles.badgeText, { fontSize: 9, color: "#666" }]}>{title.replace(' ', '\n')}</Text>
+    <Text style={[styles.badgeText, { color: unlocked ? "#1E6C5B" : "#AAA", marginBottom: 4, fontWeight: "bold" }]}>
+      {unlocked ? "สำเร็จแล้ว" : "ยังไม่ได้รับ"}
+    </Text>
+    <Text style={[styles.badgeText, { fontSize: 11, color: "#666" }]}>{title.replace(' ', '\n')}</Text>
   </View>
 );
 
@@ -319,10 +365,7 @@ const styles = StyleSheet.create({
     color: "#666", 
     marginTop: 5 
   },
-  statsGrid: { 
-    paddingHorizontal: 20, 
-    marginBottom: 30 
-  },
+  statsContainer: { paddingHorizontal: 20, marginBottom: 30 },
   statsRow: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
@@ -344,15 +387,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold", 
     color: "#004743" 
   },
-  statLabel: { 
-    fontSize: 12, 
-    color: "#999", 
-    marginTop: 2 
-  },
-  sectionContainer: { 
-    paddingHorizontal: 20, 
-    marginBottom: 30 
-  },
+  statValue: { fontSize: 20, fontFamily: "BalooTammudu2_700Bold", color: "#0F3D34" },
+  statLabel: { fontSize: 13, color: "#666" },
+  bonusBox: { backgroundColor: "#E8F5E9", padding: 15, borderRadius: 12, marginTop: 10 },
+  bonusTitle: { fontSize: 16, fontWeight: "bold", color: "#1E6C5B", marginBottom: 5 },
+  bonusText: { fontSize: 14, color: "#333", marginBottom: 3 },
+  sectionContainer: { marginBottom: 25, paddingHorizontal: 20 }, 
   sectionHeader: { 
     flexDirection: "row", 
     justifyContent: "space-between", 

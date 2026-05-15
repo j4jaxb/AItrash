@@ -50,10 +50,13 @@ const getCategoryIcon = (categoryName) => {
       return <MaterialCommunityIcons name="cup-outline" size={iconSize} color={iconColor} />;
     case "OTHER":
       return <MaterialCommunityIcons name="recycle-variant" size={iconSize} color={iconColor} />;
+    case "glass":
     case "Glass":
       return <MaterialCommunityIcons name="glass-fragile" size={iconSize} color={iconColor} />;
+    case "metal":
     case "Metal":
       return <MaterialCommunityIcons name="can" size={iconSize} color={iconColor} />;
+    case "paper":
     case "Paper":
       return <Ionicons name="document-text-outline" size={iconSize} color={iconColor} />;
     case "Non-recyclable":

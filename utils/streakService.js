@@ -89,6 +89,43 @@ export const loadStreak = async (userId) => {
   }
 };
 
+export const calculateMaxStreakFromScans = (scans) => {
+  if (!scans || scans.length === 0) return 0;
+  const sortedScans = [...scans].sort((a, b) => new Date(a.scan_date) - new Date(b.scan_date));
+  const uniqueDays = new Set(sortedScans.map(scan => new Date(scan.scan_date).toISOString().split("T")[0]));
+  const days = Array.from(uniqueDays).sort();
+  
+  if (days.length === 0) return 0;
+  
+  let maxStreak = 1;
+  let currentStreak = 1;
+  
+  for (let i = 0; i < days.length - 1; i++) {
+    const d1 = new Date(days[i]);
+    const d2 = new Date(days[i + 1]);
+    const diffInDays = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays === 1) {
+      currentStreak++;
+      if (currentStreak > maxStreak) maxStreak = currentStreak;
+    } else {
+      currentStreak = 1;
+    }
+  }
+  return maxStreak;
+};
+
+export const loadMaxStreak = async (userId) => {
+  if (!userId) return 0;
+  try {
+    const { data, error } = await supabase.from("result").select("scan_date").eq("user_id", userId).order("scan_date", { ascending: true });
+    if (error) return 0;
+    return calculateMaxStreakFromScans(data || []);
+  } catch (err) {
+    return 0;
+  }
+};
+
 /**
  * ตรวจสอบว่าวันนี้มีสแกนแล้วหรือไม่
  * @param {string} userId - ID ของผู้ใช้

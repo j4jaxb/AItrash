@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,8 @@ import {
   BalooTammudu2_700Bold,
 } from "@expo-google-fonts/baloo-tammudu-2";
 import { supabase } from "../supabase";
-import { loadStreak } from "../utils/streakService";
+import { loadStreak, loadMaxStreak } from "../utils/streakService";
+import { calculateAchievements, calculateConsecutiveCorrect, calculateTotalPoints } from "../utils/achievementService";
 
 const { width } = Dimensions.get("window");
 
@@ -103,6 +104,7 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
+    case "glass":
     case "Glass":
       return (
         <MaterialCommunityIcons
@@ -111,6 +113,7 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
+    case "metal":
     case "Metal":
       return (
         <MaterialCommunityIcons
@@ -119,6 +122,7 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
+    case "paper":
     case "Paper":
       return (
         <Ionicons
@@ -154,6 +158,7 @@ export default function HomeScreen({ user, navigation }) {
     accuracy: 0,
     categories: 0,
     streak: 0,
+    maxStreak: 0,
     xp: 0,
   });
   const [refreshing, setRefreshing] = useState(false);
@@ -187,35 +192,39 @@ export default function HomeScreen({ user, navigation }) {
 
       setResults(recentData || []);
 
-      const { count: itemsCount } = await supabase
+      const { data: allData } = await supabase
         .from("result")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-
-      const { data: categoriesData } = await supabase
-        .from("result")
-        .select("material!inner(material_name)")
-        .eq("user_id", user.id);
+        .select(`id, scan_date, material (material_name, recycle)`)
+        .eq("user_id", user.id)
+        .order("scan_date", { ascending: false });
 
       let categoriesCount = 0;
-
-      if (categoriesData) {
+      if (allData) {
         const unique = new Set(
-          categoriesData
+          allData
             .map((item) => item.material?.material_name)
             .filter(Boolean)
         );
-
         categoriesCount = unique.size;
       }
 
       const streak = await loadStreak(user.id);
+      const maxStreak = await loadMaxStreak(user.id);
+
+      let xpPoints = 0;
+      if (allData) {
+        const calculatedAchievements = calculateAchievements(allData, streak);
+        const consecutiveCorrect = calculateConsecutiveCorrect(allData);
+        xpPoints = calculateTotalPoints(allData, calculatedAchievements, consecutiveCorrect);
+      }
 
       setStats((prev) => ({
         ...prev,
-        itemsScanned: itemsCount || 0,
+        itemsScanned: allData ? allData.length : 0,
         categories: categoriesCount,
         streak: streak,
+        maxStreak: maxStreak,
+        xp: xpPoints,
       }));
     } catch (err) {
       console.log("Error loading data:", err);
@@ -264,17 +273,34 @@ export default function HomeScreen({ user, navigation }) {
             </View>
 
             <View style={{ marginLeft: 10 }}>
-              <Text style={styles.streakLabel}>SORTING STREAK</Text>
-              <Text style={styles.streakValue}>
-                {stats.streak > 0 ? `🔥 ${stats.streak} Days` : "No streak yet"}
-              </Text>
+              {stats.maxStreak > stats.streak ? (
+                <>
+                  <Text style={styles.streakLabel}>MAX STREAK</Text>
+                  <Text style={styles.streakValue}>🏆 {stats.maxStreak} Days</Text>
+                  {stats.streak > 0 && (
+                    <Text style={{ fontSize: 11, color: "#666", marginTop: 2, fontWeight: "bold" }}>
+                      🔥 Current: {stats.streak} Days
+                    </Text>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Text style={styles.streakLabel}>SORTING STREAK</Text>
+                  <Text style={styles.streakValue}>
+                    {stats.streak > 0 ? `🔥 ${stats.streak} Days` : "No streak yet"}
+                  </Text>
+                </>
+              )}
             </View>
           </View>
 
-          <View style={styles.xpBadge}>
+          <TouchableOpacity 
+            style={styles.xpBadge}
+            onPress={() => navigation.navigate("Rewards", { user })}
+          >
             <MaterialCommunityIcons name="leaf" size={14} color="#FFF" />
             <Text style={styles.xpText}>{`${stats.xp} XP`}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <Text

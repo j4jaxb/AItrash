@@ -147,6 +147,63 @@ app.post('/api/email/send-welcome', async (req, res) => {
 });
 
 /**
+ * ส่งอีเมลแจ้งปัญหาไปยังทีม Support
+ * POST /api/email/send-support
+ */
+app.post('/api/email/send-support', async (req, res) => {
+  try {
+    const { userEmail, userName, message } = req.body;
+
+    if (!userEmail || !message) {
+      return res.status(400).json({ error: 'userEmail and message are required' });
+    }
+
+    // 1. ส่งอีเมลเข้ากล่องขาเข้าของ Support (เพื่อรับเรื่อง)
+    const supportMailOptions = {
+      from: `"AI Trash App" <${emailConfig.auth.user}>`,
+      to: emailConfig.auth.user, // ส่งหาตัวเอง (ทีมซัพพอร์ต)
+      replyTo: userEmail, // ตั้งค่าให้กด Reply แล้วตอบกลับไปยังผู้ใช้
+      subject: `🛑 [Support Ticket] จาก ${userName || userEmail}`,
+      text: `มีผู้ใช้ส่งข้อความขอความช่วยเหลือ:\n\nชื่อผู้ใช้: ${userName || 'ไม่ระบุ'}\nอีเมล: ${userEmail}\n\nข้อความ:\n${message}`
+    };
+
+    // 2. ส่งอีเมลยืนยันกลับไปยังผู้ใช้ (ว่าได้รับเรื่องแล้ว)
+    const userMailOptions = {
+      from: `"AI Trash Support" <${emailConfig.auth.user}>`,
+      to: userEmail,
+      subject: '✅ เราได้รับข้อความของคุณแล้ว (AI Trash Support)',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+          <div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px;">
+            <h2 style="color: #1f78b4;">สวัสดี ${userName || ''}!</h2>
+            <p>เราได้รับข้อความของคุณเรียบร้อยแล้ว ทีมงานจะรีบตรวจสอบและตอบกลับหาคุณโดยเร็วที่สุด</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="color: #666; font-size: 14px;">ข้อความของคุณ:</p>
+            <blockquote style="border-left: 3px solid #1E6C5B; padding-left: 10px; color: #555;">
+              ${message}
+            </blockquote>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(supportMailOptions);
+    await transporter.sendMail(userMailOptions);
+    
+    console.log('✅ Support email sent from:', userEmail);
+
+    res.json({ 
+      success: true, 
+      message: 'Support email sent successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error sending support email:', error);
+    res.status(500).json({ error: 'Failed to send support email' });
+  }
+});
+
+/**
  * ทดสอบการเชื่อมต่อ
  * GET /api/email/health
  */

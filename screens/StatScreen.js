@@ -11,6 +11,9 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
+  Modal,
+  Alert,
+  TextInput,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -45,10 +48,21 @@ const barColors = [
 
 export default function StatScreen({ user }) {
   const navigation = useNavigation();
-
   const [loading, setLoading] = useState(true);
   const [recyclingData, setRecyclingData] = useState({});
   const [refreshing, setRefreshing] = useState(false);
+  const [goalModalVisible, setGoalModalVisible] = useState(false);
+  const [currentGoal, setCurrentGoal] = useState(null);
+  const [selectedGoalOption, setSelectedGoalOption] = useState(null);
+  const [goalStartDate, setGoalStartDate] = useState(null);
+  const [goalProgress, setGoalProgress] = useState(0);
+
+  const goalOptions = [
+    { items: 10, xp: 5 },
+    { items: 30, xp: 15 },
+    { items: 50, xp: 25 },
+    { items: 100, xp: 50 },
+  ];
 
   const loadData = async () => {
     setLoading(true);
@@ -69,8 +83,27 @@ export default function StatScreen({ user }) {
 
       const { data: totalData } = await supabase
         .from("result")
-        .select("material!inner(material_name)")
+        .select("id, scan_date, material!inner(material_name)")
         .eq("user_id", user.id);
+
+      let target = null;
+      let startDate = null;
+      try {
+        const { data: userData, error } = await supabase
+          .from("user")
+          .select("goal_target, goal_start_date")
+          .eq("id", user.id)
+          .single();
+        if (!error && userData) {
+          if (userData.goal_target) target = userData.goal_target;
+          if (userData.goal_start_date) startDate = new Date(userData.goal_start_date);
+        }
+      } catch (e) {
+        // Ignore if columns don't exist yet
+      }
+      
+      setCurrentGoal(target);
+      setGoalStartDate(startDate);
 
       const totalCounts = {};
 
@@ -97,6 +130,13 @@ export default function StatScreen({ user }) {
         (a, b) => a + b,
         0
       );
+
+      // Calculate Goal Progress (scans since goal_start_date)
+      let currentProgress = 0;
+      if (startDate && totalData) {
+        currentProgress = totalData.filter(item => new Date(item.scan_date) >= startDate).length;
+      }
+      setGoalProgress(currentProgress);
 
       const data = {};
 
@@ -218,9 +258,11 @@ export default function StatScreen({ user }) {
           </View>
 
           <View style={styles.progressCard}>
-            <Text style={styles.progressNum}>400</Text>
-            <Text style={styles.progressLabel}>Recommended Amount</Text>
-            <Text style={styles.progressSub}>Keep Going!</Text>
+            <Text style={styles.progressNum}>{currentGoal ? currentGoal : "-"}</Text>
+            <Text style={styles.progressLabel}>Goal Amount</Text>
+            <Text style={styles.progressSub}>
+              {currentGoal ? `${goalProgress} / ${currentGoal} items` : "Please set a goal"}
+            </Text>
           </View>
         </View>
 
@@ -261,7 +303,13 @@ export default function StatScreen({ user }) {
             <Text style={styles.actionBtnText}>History</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => {
+              setSelectedGoalOption(goalOptions.find(opt => opt.items === currentGoal) || goalOptions[0]);
+              setGoalModalVisible(true);
+            }}
+          >
             <Text style={styles.actionBtnText}>Goals</Text>
           </TouchableOpacity>
         </View>
@@ -289,19 +337,104 @@ export default function StatScreen({ user }) {
           </View>
         ))}
 
-        {/* BOTTOM */}
         <View style={styles.bottomRow}>
-          <TouchableOpacity style={styles.leaderboardBtn}>
-            <Text style={styles.bottomBtnText}>See Leaderboard</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.rewardBtn}>
+          <TouchableOpacity 
+            style={styles.rewardBtn}
+            onPress={() => navigation.navigate("Rewards", { user })}
+          >
             <Text style={[styles.bottomBtnText, styles.rewardBtnText]}>
               Earn Rewards
             </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Set Goal Modal */}
+      <Modal visible={goalModalVisible} transparent animationType="slide">
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>ตั้งเป้าหมายรายสัปดาห์</Text>
+            <Text style={{ color: "#666", textAlign: "center", marginBottom: 15, fontSize: 13 }}>
+              เมื่อตั้งเป้าหมายใหม่ สถิติการสแกนสำหรับเป้าหมายเดิมจะถูกรีเซ็ตและเริ่มนับใหม่
+            </Text>
+            
+            <View style={{ width: "100%", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
+              {goalOptions.map((opt, i) => {
+                const isSelected = selectedGoalOption?.items === opt.items;
+                return (
+                  <TouchableOpacity 
+                    key={i} 
+                    style={[styles.goalOptionCard, isSelected && styles.goalOptionSelected]}
+                    onPress={() => setSelectedGoalOption(opt)}
+                  >
+                    <Text style={[styles.goalOptionItems, isSelected && { color: "#fff" }]}>{opt.items} ชิ้น</Text>
+                    <View style={styles.xpBadge}>
+                      <Text style={styles.goalOptionXp}>+{opt.xp} XP</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            
+            <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", marginTop: 20 }}>
+              <TouchableOpacity 
+                style={[styles.modalBtn, { backgroundColor: "#ccc" }]} 
+                onPress={() => setGoalModalVisible(false)}
+              >
+                <Text style={styles.modalBtnText}>ยกเลิก</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalBtn, { backgroundColor: "#0F3D34" }]} 
+                onPress={() => {
+                  if (!selectedGoalOption) {
+                    Alert.alert("แจ้งเตือน", "กรุณาเลือกเป้าหมาย");
+                    return;
+                  }
+                  
+                  const newGoal = selectedGoalOption.items;
+                  
+                  Alert.alert(
+                    "ยืนยันเป้าหมาย",
+                    `คุณต้องการตั้งเป้าหมายเป็น ${newGoal} ชิ้นใช่ไหม?\n(ยอดนับเป้าหมายจะเริ่มนับใหม่ตั้งแต่ตอนนี้)`,
+                    [
+                      { text: "ยกเลิก", style: "cancel" },
+                      { 
+                        text: "ยืนยัน", 
+                        onPress: async () => {
+                          const now = new Date().toISOString();
+                          try {
+                            const { error } = await supabase
+                              .from("user")
+                              .update({ goal_target: newGoal, goal_start_date: now })
+                              .eq("id", user.id);
+                              
+                            if (error) {
+                              Alert.alert(
+                                "ต้องเพิ่มคอลัมน์ในฐานข้อมูล", 
+                                "กรุณาสร้างคอลัมน์ goal_target (int) และ goal_start_date (timestamp) ในตาราง user ก่อนครับ"
+                              );
+                            } else {
+                              setCurrentGoal(newGoal);
+                              setGoalStartDate(new Date(now));
+                              setGoalProgress(0);
+                            }
+                          } catch (err) {
+                            console.log(err);
+                          }
+                          setGoalModalVisible(false);
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
+                <Text style={styles.modalBtnText}>ตกลง</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -493,5 +626,60 @@ const styles = StyleSheet.create({
   rewardBtnText: {
     color: "#FFFFFF",
     fontWeight: "bold",
+  },
+  modalBg: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalContainer: { width: "85%", backgroundColor: "#fff", borderRadius: 20, padding: 25, alignItems: "center" },
+  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#0F3D34", marginBottom: 10 },
+  goalInput: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 18,
+    textAlign: "center",
+  },
+  modalBtn: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: "center",
+  },
+  modalBtnText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  goalOptionCard: {
+    width: "48%",
+    backgroundColor: "#F2F9F8",
+    borderRadius: 15,
+    padding: 20,
+    alignItems: "center",
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  goalOptionSelected: {
+    backgroundColor: "#1E6C5B",
+    borderColor: "#0F3D34",
+  },
+  goalOptionItems: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#0F3D34",
+    marginBottom: 8,
+  },
+  xpBadge: {
+    backgroundColor: "#FFD700",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  goalOptionXp: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#856600",
   },
 });

@@ -56,8 +56,7 @@ export default function ScanScreen({ navigation, route }) {
   const pickImage = async () => {
     const picker = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsEditing: false, // ปิดการ Crop เพื่อให้เอารูปมาทั้งรูปได้ 100% ตามต้นฉบับ
       quality: 1,
     });
     if (!picker.canceled) {

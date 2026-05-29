@@ -37,38 +37,38 @@ app.post('/api/email/send-verification', async (req, res) => {
     }
 
     const mailOptions = {
-      from: `"AI Trash App" <${emailConfig.auth.user}>`,
+      from: `"recyte" <${emailConfig.auth.user}>`,
       to: email,
-      subject: '📧 รหัสยืนยันของคุณ - AI Trash',
+      subject: '📧 รหัสยืนยันของคุณ - recyte',
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
             <style>
-              body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
-              .container { max-width: 500px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+              body { font-family: Arial, sans-serif; background-color: #e8f5e9; }
+              .container { max-width: 500px; margin: 20px auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.15); }
               .header { text-align: center; margin-bottom: 30px; }
-              .code-box { background-color: #1f78b4; color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; font-size: 32px; font-weight: bold; letter-spacing: 5px; font-family: monospace; }
+              .code-box { background-color: #2e7d32; color: white; padding: 22px; border-radius: 12px; text-align: center; margin: 20px 0; font-size: 34px; font-weight: 700; letter-spacing: 4px; font-family: monospace; }
               .footer { color: #666; font-size: 12px; text-align: center; margin-top: 30px; }
-              .warning { background-color: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 20px; color: #856404; font-size: 12px; }
+              .warning { background-color: #f1f8e9; padding: 12px; border-radius: 6px; margin-top: 20px; color: #33691e; font-size: 13px; }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
-                <h1 style="color: #1f78b4; margin: 0;">🗑️ AI Trash</h1>
-                <p style="color: #666; margin: 5px 0;">ระบบจำแนกขยะอัจฉริยะ</p>
+                <h1 style="color: #2e7d32; margin: 0;">♻️ recyte</h1>
+                <p style="color: #4f5d33; margin: 5px 0;">แอปจัดการขยะและรีไซเคิลอย่างชาญฉลาด</p>
               </div>
               
               <p>สวัสดี!</p>
               <p>เราได้รับคำขอเพื่อยืนยันบัญชีหรือเปลี่ยนรหัสผ่านของคุณ</p>
               
-              <p style="text-align: center; color: #333;">รหัสยืนยันของคุณคือ:</p>
+              <p style="text-align: center; color: #264d26;">รหัสยืนยันของคุณคือ:</p>
               <div class="code-box">${code}</div>
               
-              <p style="color: #666; font-size: 14px;">
-                โปรดใช้รหัสนี้ในแอปพลิเคชัน<br>
+              <p style="color: #4f5d33; font-size: 14px;">
+                โปรดใช้รหัสนี้ในแอป recyte<br>
                 <strong>⏰ รหัสนี้จะหมดอายุใน 10 นาที</strong>
               </p>
               
@@ -77,7 +77,7 @@ app.post('/api/email/send-verification', async (req, res) => {
               </div>
               
               <div class="footer">
-                <p>© 2024 AI Trash App. All rights reserved.</p>
+                <p>© 2026 recyte. All rights reserved.</p>
               </div>
             </div>
           </body>
@@ -114,17 +114,17 @@ app.post('/api/email/send-welcome', async (req, res) => {
     }
 
     const mailOptions = {
-      from: `"AI Trash App" <${emailConfig.auth.user}>`,
+      from: `"recyte" <${emailConfig.auth.user}>`,
       to: email,
-      subject: '🎉 ยินดีต้อนรับสู่ AI Trash',
+      subject: '🎉 ยินดีต้อนรับสู่ recyte',
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
-          <div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px;">
-            <h1 style="color: #1f78b4;">🎉 ยินดีต้อนรับ ${firstName}!</h1>
-            <p>บัญชีของคุณได้สร้างเรียบร้อยแล้ว</p>
-            <p>ตอนนี้คุณพร้อมที่จะเริ่มต้นใช้ AI Trash เพื่อจำแนกขยะอย่างชาญฉลาด</p>
-            <p style="margin-top: 30px; color: #666;">
-              หากมีคำถามใด ติดต่อเราได้ที่ support@aitrash.com
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #e8f5e9;">
+          <div style="max-width: 500px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.15);">
+            <h1 style="color: #2e7d32;">🎉 ยินดีต้อนรับ ${firstName}!</h1>
+            <p>บัญชีของคุณถูกสร้างเรียบร้อยแล้ว</p>
+            <p>คุณพร้อมที่จะเริ่มใช้ recyte เพื่อจัดการขยะและรีไซเคิลได้อย่างสะดวก</p>
+            <p style="margin-top: 30px; color: #4f5d33;">
+              หากมีคำถามใด ติดต่อเราได้ที่ support@recyte.com
             </p>
           </div>
         </div>
@@ -160,7 +160,7 @@ app.post('/api/email/send-support', async (req, res) => {
 
     // 1. ส่งอีเมลเข้ากล่องขาเข้าของ Support (เพื่อรับเรื่อง)
     const supportMailOptions = {
-      from: `"AI Trash App" <${emailConfig.auth.user}>`,
+      from: `"recyte" <${emailConfig.auth.user}>`,
       to: emailConfig.auth.user, // ส่งหาตัวเอง (ทีมซัพพอร์ต)
       replyTo: userEmail, // ตั้งค่าให้กด Reply แล้วตอบกลับไปยังผู้ใช้
       subject: `🛑 [Support Ticket] จาก ${userName || userEmail}`,
@@ -169,17 +169,17 @@ app.post('/api/email/send-support', async (req, res) => {
 
     // 2. ส่งอีเมลยืนยันกลับไปยังผู้ใช้ (ว่าได้รับเรื่องแล้ว)
     const userMailOptions = {
-      from: `"AI Trash Support" <${emailConfig.auth.user}>`,
+      from: `"recyte Support" <${emailConfig.auth.user}>`,
       to: userEmail,
-      subject: '✅ เราได้รับข้อความของคุณแล้ว (AI Trash Support)',
+      subject: '✅ เราได้รับข้อความของคุณแล้ว (recyte Support)',
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
-          <div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px;">
-            <h2 style="color: #1f78b4;">สวัสดี ${userName || ''}!</h2>
-            <p>เราได้รับข้อความของคุณเรียบร้อยแล้ว ทีมงานจะรีบตรวจสอบและตอบกลับหาคุณโดยเร็วที่สุด</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="color: #666; font-size: 14px;">ข้อความของคุณ:</p>
-            <blockquote style="border-left: 3px solid #1E6C5B; padding-left: 10px; color: #555;">
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #e8f5e9;">
+          <div style="max-width: 500px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.15);">
+            <h2 style="color: #2e7d32;">สวัสดี ${userName || ''}!</h2>
+            <p>เราได้รับข้อความของคุณเรียบร้อยแล้ว ทีมงาน recyte จะรีบตรวจสอบและตอบกลับภายในเร็วที่สุด</p>
+            <hr style="border: 0; border-top: 1px solid #c8e6c9; margin: 20px 0;">
+            <p style="color: #4f5d33; font-size: 14px;">ข้อความของคุณ:</p>
+            <blockquote style="border-left: 3px solid #2e7d32; padding-left: 10px; color: #555;">
               ${message}
             </blockquote>
           </div>
@@ -228,10 +228,11 @@ app.get('/api/email/health', async (req, res) => {
  */
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'AI Trash Email Service',
+    message: 'recyte Email Service',
     endpoints: {
       'POST /api/email/send-verification': 'Send verification code',
       'POST /api/email/send-welcome': 'Send welcome email',
+      'POST /api/email/send-support': 'Send support request',
       'GET /api/email/health': 'Health check'
     }
   });
@@ -239,7 +240,7 @@ app.get('/', (req, res) => {
 
 // เริ่มต้น Server
 app.listen(PORT, () => {
-  console.log(`\n🚀 Email Server running on port ${PORT}`);
+  console.log(`\n🚀 recyte Email Server running on port ${PORT}`);
   console.log(`📧 Email: ${emailConfig.auth.user}`);
   console.log(`\n📌 API URL: http://localhost:${PORT}\n`);
 });

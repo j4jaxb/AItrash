@@ -35,7 +35,7 @@ export default function ResultScreen({ route, navigation, user }) {
   const [editingIndex, setEditingIndex] = useState(null);
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
 
-  const allCategories = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS", "OTHER", "glass", "metal", "paper"];
+  const allCategories = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS", "glass", "metal", "paper"];
 
   const changeCategory = (newCategory) => {
     if (editingIndex !== null) {

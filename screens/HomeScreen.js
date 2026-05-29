@@ -96,14 +96,6 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
-    case "OTHER":
-      return (
-        <MaterialCommunityIcons
-          name="recycle-variant"
-          size={iconSize}
-          color={iconColor}
-        />
-      );
     case "glass":
     case "Glass":
       return (
@@ -150,6 +142,15 @@ const getCategoryIcon = (categoryName) => {
   }
 };
 
+// สูตรคำนวณ CO2 ตามประเภทขยะ (เหมือนหน้าโปรไฟล์)
+function calculateCO2(materialName) {
+  const name = materialName?.toUpperCase();
+  if (name?.includes("PETE") || name?.includes("PLASTIC")) return 0.05;
+  if (name?.includes("GLASS")) return 0.1;
+  if (name?.includes("METAL") || name?.includes("CAN")) return 0.2;
+  return 0.02;
+}
+
 export default function HomeScreen({ user, navigation }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -160,6 +161,7 @@ export default function HomeScreen({ user, navigation }) {
     streak: 0,
     maxStreak: 0,
     xp: 0,
+    co2Saved: 0,
   });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -212,10 +214,13 @@ export default function HomeScreen({ user, navigation }) {
       const maxStreak = await loadMaxStreak(user.id);
 
       let xpPoints = 0;
+      let totalCO2 = 0;
       if (allData) {
         const calculatedAchievements = calculateAchievements(allData, streak);
         const consecutiveCorrect = calculateConsecutiveCorrect(allData);
         xpPoints = calculateTotalPoints(allData, calculatedAchievements, consecutiveCorrect);
+        // Calculate CO2 saved based on scanned materials
+        totalCO2 = allData.reduce((sum, item) => sum + calculateCO2(item.material?.material_name), 0);
       }
 
       setStats((prev) => ({
@@ -225,6 +230,7 @@ export default function HomeScreen({ user, navigation }) {
         streak: streak,
         maxStreak: maxStreak,
         xp: xpPoints,
+        co2Saved: allData ? totalCO2.toFixed(2) : 0,
       }));
     } catch (err) {
       console.log("Error loading data:", err);
@@ -321,8 +327,8 @@ export default function HomeScreen({ user, navigation }) {
           </View>
 
           <View style={styles.statCard}>
-            <Text style={styles.statNum}>{`${stats.accuracy}%`}</Text>
-            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statNum}>{`${stats.co2Saved}kg`}</Text>
+            <Text style={styles.statLabel}>CO₂ Saved</Text>
           </View>
 
           <View style={styles.statCard}>

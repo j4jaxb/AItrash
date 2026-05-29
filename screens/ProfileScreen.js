@@ -34,7 +34,6 @@ const getCategoryIcon = (categoryName) => {
     case "LDPE": return <MaterialCommunityIcons name="shopping-outline" size={iconSize} color={iconColor} />;
     case "PP": return <MaterialCommunityIcons name="spoon-sugar" size={iconSize} color={iconColor} />;
     case "PS": return <MaterialCommunityIcons name="cup-outline" size={iconSize} color={iconColor} />;
-    case "OTHER": return <MaterialCommunityIcons name="recycle-variant" size={iconSize} color={iconColor} />;
     case "glass":
     case "Glass": return <MaterialCommunityIcons name="glass-fragile" size={iconSize} color={iconColor} />;
     case "metal":
@@ -86,27 +85,32 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
         .eq("user_id", user.id);
 
       if (allData) {
-        const total = allData.length;
-        const sevenPlastics = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS", "OTHER"];
-        
-        const consecutiveCorrect = calculateConsecutiveCorrect(allData);
+        const mappedAll = allData.map(item => ({
+          ...item,
+          material: item.material
+        }));
 
-        const recycledCount = allData.filter(item => 
+        const total = mappedAll.length;
+        const sevenPlastics = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS"];
+        
+        const consecutiveCorrect = calculateConsecutiveCorrect(mappedAll);
+
+        const recycledCount = mappedAll.filter(item => 
           sevenPlastics.includes(item.material?.material_name?.toUpperCase())
         ).length;
         
-        const totalCO2 = allData.reduce((sum, item) => 
+        const totalCO2 = mappedAll.reduce((sum, item) => 
           sum + calculateCO2(item.material?.material_name), 0
         );
 
         const streakCount = await loadStreak(user.id);
         const maxStreakCount = await loadMaxStreak(user.id);
         
-        const calculatedAchievements = calculateAchievements(allData, streakCount);
+        const calculatedAchievements = calculateAchievements(mappedAll, streakCount);
         setAchievementsList(calculatedAchievements);
         const unlockedCount = calculatedAchievements.filter(a => a.unlocked).length;
 
-        const totalPoints = calculateTotalPoints(allData, calculatedAchievements, consecutiveCorrect);
+        const totalPoints = calculateTotalPoints(mappedAll, calculatedAchievements, consecutiveCorrect);
 
         setStats({
           totalScans: total,
@@ -127,7 +131,12 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
         .order("scan_date", { ascending: false })
         .limit(3);
       
-      setResults(recentData || []);
+      const mappedRecent = (recentData || []).map(item => ({
+        ...item,
+        material: item.material
+      }));
+
+      setResults(mappedRecent || []);
     } catch (err) {
       console.log("Error loading profile:", err);
     } finally {

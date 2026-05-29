@@ -48,8 +48,6 @@ const getCategoryIcon = (categoryName) => {
       return <MaterialCommunityIcons name="spoon-sugar" size={iconSize} color={iconColor} />;
     case "PS":
       return <MaterialCommunityIcons name="cup-outline" size={iconSize} color={iconColor} />;
-    case "OTHER":
-      return <MaterialCommunityIcons name="recycle-variant" size={iconSize} color={iconColor} />;
     case "glass":
     case "Glass":
       return <MaterialCommunityIcons name="glass-fragile" size={iconSize} color={iconColor} />;

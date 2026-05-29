@@ -83,7 +83,7 @@ export default function StatScreen({ user }) {
 
       const { data: totalData } = await supabase
         .from("result")
-        .select("id, scan_date, material!inner(material_name)")
+        .select("id, scan_date, material (material_name)")
         .eq("user_id", user.id);
 
       let target = null;
@@ -105,23 +105,33 @@ export default function StatScreen({ user }) {
       setCurrentGoal(target);
       setGoalStartDate(startDate);
 
+      const mappedTotal = (totalData || []).map(item => ({
+        ...item,
+        material: item.material
+      })).filter(item => item.material);
+
       const totalCounts = {};
 
-      totalData?.forEach((item) => {
+      mappedTotal.forEach((item) => {
         const name = item.material.material_name;
         totalCounts[name] = (totalCounts[name] || 0) + 1;
       });
 
       const { data: weekData } = await supabase
         .from("result")
-        .select("material!inner(material_name)")
+        .select("material (material_name)")
         .eq("user_id", user.id)
         .gte("scan_date", monday.toISOString())
         .lt("scan_date", nextMonday.toISOString());
 
+      const mappedWeek = (weekData || []).map(item => ({
+        ...item,
+        material: item.material
+      })).filter(item => item.material);
+
       const weekCounts = {};
 
-      weekData?.forEach((item) => {
+      mappedWeek.forEach((item) => {
         const name = item.material.material_name;
         weekCounts[name] = (weekCounts[name] || 0) + 1;
       });
@@ -133,8 +143,8 @@ export default function StatScreen({ user }) {
 
       // Calculate Goal Progress (scans since goal_start_date)
       let currentProgress = 0;
-      if (startDate && totalData) {
-        currentProgress = totalData.filter(item => new Date(item.scan_date) >= startDate).length;
+      if (startDate && mappedTotal) {
+        currentProgress = mappedTotal.filter(item => new Date(item.scan_date) >= startDate).length;
       }
       setGoalProgress(currentProgress);
 

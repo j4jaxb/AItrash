@@ -32,13 +32,13 @@ export const calculateAchievements = (allData, streak) => {
     if (name) datesMap[dateStr].add(name.toLowerCase());
   });
   
-  const plastics = ["pete", "hdpe", "pvc", "ldpe", "pp", "ps", "other"];
+  const plastics = ["pete", "hdpe", "pvc", "ldpe", "pp", "ps"];
   for (const date in datesMap) {
     let count = 0;
     plastics.forEach(p => {
       if (datesMap[date].has(p)) count++;
     });
-    if (count >= 7 || datesMap[date].size >= 7) { 
+    if (count >= 6 || datesMap[date].size >= 6) { 
       hasMixedMaster = true;
       break;
     }
@@ -80,7 +80,7 @@ export const calculateTotalPoints = (allData, achievementsList, consecutiveCorre
 };
 
 export const calculateConsecutiveCorrect = (allData) => {
-  const sevenPlastics = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS", "OTHER"];
+  const sevenPlastics = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS"];
   let consecutiveCorrect = 0;
   const sortedScans = [...allData].sort((a,b) => new Date(b.scan_date) - new Date(a.scan_date));
   for (const scan of sortedScans) {

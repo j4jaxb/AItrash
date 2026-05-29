@@ -22,7 +22,6 @@ const materialsData = [
   { id: 'ldpe', code: 'LDPE (4)', name: 'Low-Density Polyethylene', icon: 'shopping', family: 'MC', examples: 'Plastic bags   Food wraps   Squeeze bottles' },
   { id: 'pp', code: 'PP (5)', name: 'Polypropylene', icon: 'silverware-fork-knife', family: 'MC', examples: 'Yogurt cups   Bottle caps   Straws' },
   { id: 'ps', code: 'PS (6)', name: 'Polystyrene', icon: 'cup-outline', family: 'MC', examples: 'Styrofoam   Disposable cups   Food trays' },
-  { id: 'other', code: 'Other (7)', name: 'Mixed Plastics', icon: 'help-circle', family: 'MC', examples: 'Mixed Plastics   Multi-layer   Composite   Mixed materials', infoTitle: '⚠ Check Locally', infoContent: 'Recycling options vary by location.' },
 ];
 
 export default function GuideScreen() {

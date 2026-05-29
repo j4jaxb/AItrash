@@ -51,7 +51,6 @@ def predict():
             "hdpe": "HDPE",
             "ldpe": "LDPE",
             "metal": "metal",
-            "others": "OTHER",
             "paper": "paper",
             "pete": "PETE",
             "pp": "PP",
@@ -67,22 +66,26 @@ def predict():
             conf = float(result.probs.top1conf)
             raw_name = result.names[top1_index]
             mapped_name = class_map.get(raw_name.lower(), raw_name)
-            predictions.append({
-                'class_name': mapped_name,
-                'raw_class_name': raw_name,
-                'confidence': conf
-            })
+            # Skip any "other"/mixed category results
+            if not isinstance(mapped_name, str) or 'other' not in mapped_name.lower():
+                predictions.append({
+                    'class_name': mapped_name,
+                    'raw_class_name': raw_name,
+                    'confidence': conf
+                })
         elif result.boxes is not None and len(result.boxes) > 0:
             # Object Detection (คืนค่าทุก object ที่ตรวจเจอ)
             for box in result.boxes:
                 conf = float(box.conf[0])
                 raw_name = result.names[int(box.cls[0])]
                 mapped_name = class_map.get(raw_name.lower(), raw_name)
-                predictions.append({
-                    'class_name': mapped_name,
-                    'raw_class_name': raw_name,
-                    'confidence': conf
-                })
+                # Skip any "other"/mixed category detections
+                if not isinstance(mapped_name, str) or 'other' not in mapped_name.lower():
+                    predictions.append({
+                        'class_name': mapped_name,
+                        'raw_class_name': raw_name,
+                        'confidence': conf
+                    })
         else:
             return jsonify({'error': 'No objects detected', 'predictions': []}), 200
             

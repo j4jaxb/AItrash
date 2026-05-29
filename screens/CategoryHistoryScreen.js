@@ -65,14 +65,6 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
-    case "OTHER":
-      return (
-        <MaterialCommunityIcons
-          name="recycle-variant"
-          size={iconSize}
-          color={iconColor}
-        />
-      );
     case "Glass":
       return (
         <MaterialCommunityIcons
@@ -125,7 +117,6 @@ export default function CategoryHistoryScreen({ navigation, route }) {
     { id: "ldpe", name: "LDPE", sub: "Resin Code 4" },
     { id: "pp", name: "PP", sub: "Resin Code 5" },
     { id: "ps", name: "PS", sub: "Resin Code 6" },
-    { id: "other", name: "OTHER", sub: "Resin Code 7" },
     { id: "glass", name: "Glass", sub: "Recyclable" },
     { id: "metal", name: "Metal", sub: "Recyclable" },
     { id: "paper", name: "Paper", sub: "Clean & Dry" },
@@ -151,8 +142,7 @@ export default function CategoryHistoryScreen({ navigation, route }) {
           )
         `,
         )
-        .eq("user_id", user.id)
-        .not("material", "is", null);
+        .eq("user_id", user.id);
 
       if (error) {
         console.log("Load categories error", error);
@@ -160,10 +150,11 @@ export default function CategoryHistoryScreen({ navigation, route }) {
       } else {
         const uniqueCategories = [];
         const seen = new Set();
-        data.forEach((item) => {
-          if (item.material && !seen.has(item.material.material_name)) {
-            seen.add(item.material.material_name);
-            uniqueCategories.push(item.material);
+        (data || []).forEach((item) => {
+          const activeMaterial = item.material;
+          if (activeMaterial && !seen.has(activeMaterial.material_name)) {
+            seen.add(activeMaterial.material_name);
+            uniqueCategories.push(activeMaterial);
           }
         });
 

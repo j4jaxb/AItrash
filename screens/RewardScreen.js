@@ -33,15 +33,20 @@ export default function RewardScreen({ route, navigation }) {
         .order("scan_date", { ascending: false });
 
       if (allData) {
+        const mappedAll = allData.map(item => ({
+          ...item,
+          material: item.material
+        }));
+
         const streakCount = await loadStreak(user.id);
-        const achievementsList = calculateAchievements(allData, streakCount);
-        const consecutiveCorrect = calculateConsecutiveCorrect(allData);
-        const totalPoints = calculateTotalPoints(allData, achievementsList, consecutiveCorrect);
+        const achievementsList = calculateAchievements(mappedAll, streakCount);
+        const consecutiveCorrect = calculateConsecutiveCorrect(mappedAll);
+        const totalPoints = calculateTotalPoints(mappedAll, achievementsList, consecutiveCorrect);
         
         setPoints(totalPoints);
 
         // สร้างประวัติคะแนนจากการสแกน (2 แต้มต่อชิ้น)
-        const historyData = allData.map(item => ({
+        const historyData = mappedAll.map(item => ({
           id: item.id.toString(),
           title: `สแกนขยะ (${item.material?.material_name || 'Unknown'})`,
           points: "+2 XP",

@@ -18,6 +18,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { supabase } from "../supabase";
+import { fetchUserResults } from "../utils/resultService";
 
 const { width } = Dimensions.get("window");
 
@@ -81,22 +82,23 @@ export default function StatScreen({ user }) {
       const nextMonday = new Date(monday);
       nextMonday.setDate(monday.getDate() + 7);
 
-      const { data: totalData } = await supabase
-        .from("result")
-        .select("id, scan_date, material (material_name)")
-        .eq("user_id", user.id);
+      const totalData = await fetchUserResults({
+        userId: user.id,
+      });
 
       let target = null;
       let startDate = null;
+      let goalXp = 50; // Default to 50 if not set
       try {
         const { data: userData, error } = await supabase
           .from("user")
-          .select("goal_target, goal_start_date")
+          .select("goal_target, goal_start_date, goal_xp")
           .eq("id", user.id)
           .single();
         if (!error && userData) {
           if (userData.goal_target) target = userData.goal_target;
           if (userData.goal_start_date) startDate = new Date(userData.goal_start_date);
+          if (userData.goal_xp) goalXp = userData.goal_xp;
         }
       } catch (e) {
         // Ignore if columns don't exist yet
@@ -108,31 +110,35 @@ export default function StatScreen({ user }) {
       const mappedTotal = (totalData || []).map(item => ({
         ...item,
         material: item.material
-      })).filter(item => item.material);
+      }));
+
+      // Filter to only count auto-detected scans (edit !== 0 and is_manual !== true)
+      const countedTotal = mappedTotal.filter(item => {
+        const isManualFromEdit = item.edit === 0;
+        const isManualLegacy = item.is_manual === true;
+        return !isManualFromEdit && !isManualLegacy;
+      });
 
       const totalCounts = {};
 
-      mappedTotal.forEach((item) => {
-        const name = item.material.material_name;
+      countedTotal.forEach((item) => {
+        const name = item.material?.material_name?.toUpperCase();
+        if (!name) return;
         totalCounts[name] = (totalCounts[name] || 0) + 1;
       });
 
-      const { data: weekData } = await supabase
-        .from("result")
-        .select("material (material_name)")
-        .eq("user_id", user.id)
-        .gte("scan_date", monday.toISOString())
-        .lt("scan_date", nextMonday.toISOString());
-
-      const mappedWeek = (weekData || []).map(item => ({
-        ...item,
-        material: item.material
-      })).filter(item => item.material);
+      // Filter week data from mappedTotal by date and exclude manual edits
+      const mappedWeek = mappedTotal.filter(item => {
+        const scanDate = new Date(item.scan_date);
+        const isManualFromEdit = item.edit === 0;
+        const isManualLegacy = item.is_manual === true;
+        return scanDate >= monday && scanDate < nextMonday && item.material && !isManualFromEdit && !isManualLegacy;
+      });
 
       const weekCounts = {};
 
       mappedWeek.forEach((item) => {
-        const name = item.material.material_name;
+        const name = item.material?.material_name;
         weekCounts[name] = (weekCounts[name] || 0) + 1;
       });
 
@@ -141,17 +147,17 @@ export default function StatScreen({ user }) {
         0
       );
 
-      // Calculate Goal Progress (scans since goal_start_date)
+      // Calculate Goal Progress (scans THIS WEEK ONLY, resets every Monday)
       let currentProgress = 0;
-      if (startDate && mappedTotal) {
-        currentProgress = mappedTotal.filter(item => new Date(item.scan_date) >= startDate).length;
+      if (mappedWeek) {
+        currentProgress = mappedWeek.length;
       }
       setGoalProgress(currentProgress);
 
       const data = {};
 
       categories.forEach((cat) => {
-        data[cat.id] = totalCounts[cat.name] || 0;
+        data[cat.id] = totalCounts[cat.name.toUpperCase()] || 0;
       });
 
       data.thisWeekCount = thisWeekCount;
@@ -402,7 +408,8 @@ export default function StatScreen({ user }) {
                     return;
                   }
                   
-                  const newGoal = selectedGoalOption.items;
+                          const newGoal = selectedGoalOption.items;
+                          const newGoalXp = selectedGoalOption.xp;
                   
                   Alert.alert(
                     "ยืนยันเป้าหมาย",
@@ -416,13 +423,13 @@ export default function StatScreen({ user }) {
                           try {
                             const { error } = await supabase
                               .from("user")
-                              .update({ goal_target: newGoal, goal_start_date: now })
+                              .update({ goal_target: newGoal, goal_start_date: now, goal_xp: newGoalXp })
                               .eq("id", user.id);
                               
                             if (error) {
                               Alert.alert(
                                 "ต้องเพิ่มคอลัมน์ในฐานข้อมูล", 
-                                "กรุณาสร้างคอลัมน์ goal_target (int) และ goal_start_date (timestamp) ในตาราง user ก่อนครับ"
+                                "กรุณาสร้างคอลัมน์ goal_target (int), goal_start_date (timestamp), และ goal_xp (int) ในตาราง user ก่อนครับ"
                               );
                             } else {
                               setCurrentGoal(newGoal);

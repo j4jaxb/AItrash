@@ -73,16 +73,47 @@ export const loadStreak = async (userId) => {
   try {
     const { data, error } = await supabase
       .from("result")
-      .select("scan_date")
+      .select("scan_date, is_manual, edit")
       .eq("user_id", userId)
       .order("scan_date", { ascending: false });
 
     if (error) {
+      const isMissingManual = (error.code === "42703" || error.code === "PGRST204") &&
+        error.message?.includes("is_manual");
+      const isMissingEdit = (error.code === "42703" || error.code === "PGRST204") &&
+        error.message?.includes("edit");
+      if (isMissingEdit) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("result")
+          .select("scan_date, is_manual")
+          .eq("user_id", userId)
+          .order("scan_date", { ascending: false });
+        if (fallbackError) {
+          console.log("Error loading streak fallback data:", fallbackError);
+          return 0;
+        }
+        const filteredFallback = (fallbackData || []).filter((item) => item.is_manual !== true);
+        return calculateStreakFromScans(filteredFallback);
+      }
+      if (isMissingManual) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("result")
+          .select("scan_date")
+          .eq("user_id", userId)
+          .order("scan_date", { ascending: false });
+        if (fallbackError) {
+          console.log("Error loading streak fallback data:", fallbackError);
+          return 0;
+        }
+        return calculateStreakFromScans(fallbackData || []);
+      }
+
       console.log("Error loading streak data:", error);
       return 0;
     }
 
-    return calculateStreakFromScans(data || []);
+    const filteredData = (data || []).filter((item) => item.is_manual !== true && item.edit !== 0);
+    return calculateStreakFromScans(filteredData);
   } catch (err) {
     console.log("Error in loadStreak:", err);
     return 0;
@@ -118,9 +149,35 @@ export const calculateMaxStreakFromScans = (scans) => {
 export const loadMaxStreak = async (userId) => {
   if (!userId) return 0;
   try {
-    const { data, error } = await supabase.from("result").select("scan_date").eq("user_id", userId).order("scan_date", { ascending: true });
-    if (error) return 0;
-    return calculateMaxStreakFromScans(data || []);
+    const { data, error } = await supabase.from("result").select("scan_date, is_manual, edit").eq("user_id", userId).order("scan_date", { ascending: true });
+    if (error) {
+      const isMissingManual = (error.code === "42703" || error.code === "PGRST204") &&
+        error.message?.includes("is_manual");
+      const isMissingEdit = (error.code === "42703" || error.code === "PGRST204") &&
+        error.message?.includes("edit");
+      if (isMissingEdit) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("result")
+          .select("scan_date, is_manual")
+          .eq("user_id", userId)
+          .order("scan_date", { ascending: true });
+        if (fallbackError) return 0;
+        const filteredFallback = (fallbackData || []).filter((item) => item.is_manual !== true);
+        return calculateMaxStreakFromScans(filteredFallback);
+      }
+      if (isMissingManual) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("result")
+          .select("scan_date")
+          .eq("user_id", userId)
+          .order("scan_date", { ascending: true });
+        if (fallbackError) return 0;
+        return calculateMaxStreakFromScans(fallbackData || []);
+      }
+      return 0;
+    }
+    const filteredData = (data || []).filter((item) => item.is_manual !== true && item.edit !== 0);
+    return calculateMaxStreakFromScans(filteredData);
   } catch (err) {
     return 0;
   }
@@ -143,18 +200,52 @@ export const hasScannedToday = async (userId) => {
 
     const { data, error } = await supabase
       .from("result")
-      .select("id")
+      .select("id, is_manual, edit")
       .eq("user_id", userId)
       .gte("scan_date", `${todayString}T00:00:00`)
       .lt("scan_date", `${tomorrowString}T00:00:00`)
       .limit(1);
 
     if (error) {
+      const isMissingManual = (error.code === "42703" || error.code === "PGRST204") &&
+        error.message?.includes("is_manual");
+      const isMissingEdit = (error.code === "42703" || error.code === "PGRST204") &&
+        error.message?.includes("edit");
+      if (isMissingEdit) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("result")
+          .select("id, is_manual")
+          .eq("user_id", userId)
+          .gte("scan_date", `${todayString}T00:00:00`)
+          .lt("scan_date", `${tomorrowString}T00:00:00`)
+          .limit(1);
+        if (fallbackError) {
+          console.log("Error checking today's scans fallback:", fallbackError);
+          return false;
+        }
+        const filteredFallback = (fallbackData || []).filter((item) => item.is_manual !== true);
+        return (filteredFallback && filteredFallback.length > 0) || false;
+      }
+      if (isMissingManual) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("result")
+          .select("id")
+          .eq("user_id", userId)
+          .gte("scan_date", `${todayString}T00:00:00`)
+          .lt("scan_date", `${tomorrowString}T00:00:00`)
+          .limit(1);
+        if (fallbackError) {
+          console.log("Error checking today's scans fallback:", fallbackError);
+          return false;
+        }
+        return (fallbackData && fallbackData.length > 0) || false;
+      }
       console.log("Error checking today's scans:", error);
       return false;
     }
 
-    return (data && data.length > 0) || false;
+    const filteredData = (data || []).filter((item) => item.is_manual !== true && item.edit !== 0);
+    return (filteredData && filteredData.length > 0) || false;
   } catch (err) {
     console.log("Error in hasScannedToday:", err);
     return false;

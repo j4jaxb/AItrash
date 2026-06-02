@@ -18,6 +18,7 @@ import { supabase } from "../supabase";
 import Constants from "expo-constants";
 import { loadStreak } from "../utils/streakService";
 import { calculateAchievements } from "../utils/achievementService";
+import { fetchAllUserResults, insertUserResults } from "../utils/resultService";
 
 const { width } = Dimensions.get("window");
 const MARGIN = 20;
@@ -27,7 +28,6 @@ export default function ResultScreen({ route, navigation, user }) {
   const { image } = route.params;
   const [loading, setLoading] = useState(true);
   const [predictions, setPredictions] = useState([]);
-  const [selectedIndexes, setSelectedIndexes] = useState(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [displayImage, setDisplayImage] = useState(image);
@@ -40,11 +40,36 @@ export default function ResultScreen({ route, navigation, user }) {
   const changeCategory = (newCategory) => {
     if (editingIndex !== null) {
       const newPredictions = [...predictions];
-      newPredictions[editingIndex].class_name = newCategory;
-      newPredictions[editingIndex].confidence = null; // ซ่อนเปอร์เซ็นต์เมื่อแก้เอง
+      newPredictions[editingIndex] = {
+        ...newPredictions[editingIndex],
+        class_name: newCategory,
+        confidence: null, // ซ่อนเปอร์เซ็นต์เมื่อแก้เอง
+        userConfirmedType: true,
+      };
       setPredictions(newPredictions);
     }
     setModalVisible(false);
+  };
+
+  const toggleSaveSelection = (index) => {
+    const newPredictions = [...predictions];
+    newPredictions[index] = {
+      ...newPredictions[index],
+      selected: !newPredictions[index].selected,
+    };
+    setPredictions(newPredictions);
+  };
+
+  const cancelEdit = (index) => {
+    const newPredictions = [...predictions];
+    const pred = newPredictions[index];
+    newPredictions[index] = {
+      ...pred,
+      class_name: pred.originalClassName ?? pred.class_name,
+      confidence: pred.originalConfidence ?? pred.confidence,
+      userConfirmedType: false,
+    };
+    setPredictions(newPredictions);
   };
 
   useEffect(() => {
@@ -77,12 +102,16 @@ export default function ResultScreen({ route, navigation, user }) {
       const data = await response.json();
       
       if (response.ok && data.predictions && data.predictions.length > 0) {
-        setPredictions(data.predictions);
+        setPredictions(data.predictions.map((pred) => ({
+          ...pred,
+          userConfirmedType: false,
+          selected: true,
+          originalClassName: pred.class_name,
+          originalConfidence: pred.confidence,
+        })));
         if (data.image_base64) {
           setDisplayImage(data.image_base64);
         }
-        // เลือกบันทึกทุกอันเป็นค่าเริ่มต้น
-        setSelectedIndexes(new Set(data.predictions.map((_, i) => i)));
       } else {
         setErrorMsg(data.error || "ไม่พบขยะในภาพ หรือความมั่นใจต่ำเกินไป");
         if (data.image_base64) {
@@ -98,7 +127,7 @@ export default function ResultScreen({ route, navigation, user }) {
   };
 
   const handleSave = async () => {
-    if (predictions.length === 0 || selectedIndexes.size === 0) {
+    if (predictions.length === 0) {
       navigation.navigate("Scan");
       return;
     }
@@ -125,34 +154,66 @@ export default function ResultScreen({ route, navigation, user }) {
 
       const inserts = [];
       for (let i = 0; i < predictions.length; i++) {
-        if (!selectedIndexes.has(i)) continue;
         const pred = predictions[i];
-        
-        const { data: matData } = await supabase
+        if (!pred.selected) continue;
+
+        let materialId = null;
+        const { data: matData, error: matError } = await supabase
           .from('material')
           .select('id')
           .eq('material_name', pred.class_name)
           .single();
 
-        if (matData) {
-          inserts.push({ id: nextId++, user_id: user.id, material_id: matData.id });
-        } else {
+        if (matError || !matData) {
           Alert.alert("Notice", `ไม่พบหมวดหมู่ ${pred.class_name} ในฐานข้อมูล`);
+        } else {
+          materialId = matData.id;
         }
+
+        inserts.push({
+          id: nextId++,
+          user_id: user.id,
+          material_id: materialId,
+          edit: pred.userConfirmedType ? 0 : 1,
+        });
       }
 
-      const { data: oldData } = await supabase.from('result').select('id, scan_date, material (material_name, recycle)').eq('user_id', user.id);
+      if (inserts.length === 0) {
+        Alert.alert("แจ้งเตือน", "กรุณาเลือกผลที่ต้องการบันทึกก่อน");
+        setIsSaving(false);
+        return;
+      }
+
+      const oldData = await fetchAllUserResults(user.id);
       const oldStreak = await loadStreak(user.id);
-      const oldAchievements = calculateAchievements(oldData || [], oldStreak);
 
-      if (inserts.length > 0) {
-        const { error } = await supabase.from('result').insert(inserts);
-        if (error) throw error;
+      // Fetch goal data
+      let goalTarget = null;
+      let goalStartDate = null;
+      let goalXp = 50;
+      try {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("goal_target, goal_start_date, goal_xp")
+          .eq("id", user.id)
+          .single();
+        if (userData) {
+          goalTarget = userData.goal_target;
+          goalStartDate = userData.goal_start_date;
+          if (userData.goal_xp) goalXp = userData.goal_xp;
+        }
+      } catch (e) {
+        // Ignore if columns don't exist
       }
+
+      const oldAchievements = calculateAchievements(oldData || [], oldStreak, goalTarget, goalStartDate, goalXp);
+
+      const { error } = await insertUserResults(inserts);
+      if (error) throw error;
       
-      const { data: newData } = await supabase.from('result').select('id, scan_date, material (material_name, recycle)').eq('user_id', user.id);
+      const newData = await fetchAllUserResults(user.id);
       const newStreak = await loadStreak(user.id);
-      const newAchievements = calculateAchievements(newData || [], newStreak);
+      const newAchievements = calculateAchievements(newData || [], newStreak, goalTarget, goalStartDate, goalXp);
       
       const newlyUnlocked = newAchievements.filter((newAch, idx) => newAch.unlocked && !oldAchievements[idx].unlocked);
 
@@ -169,15 +230,6 @@ export default function ResultScreen({ route, navigation, user }) {
     }
   };
 
-  const toggleSelection = (index) => {
-    const newSet = new Set(selectedIndexes);
-    if (newSet.has(index)) {
-      newSet.delete(index);
-    } else {
-      newSet.add(index);
-    }
-    setSelectedIndexes(newSet);
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -226,7 +278,6 @@ export default function ResultScreen({ route, navigation, user }) {
           ) : predictions.length > 0 ? (
             <View>
               {predictions.map((pred, index) => {
-                const isSelected = selectedIndexes.has(index);
                 const unsureMode = pred.confidence !== null && pred.confidence < 0.6;
                 return (
                   <View key={index} style={[styles.resultCard, { marginTop: index > 0 ? 15 : 0 }, unsureMode && { borderTopColor: '#ff9900' }]}>
@@ -251,34 +302,49 @@ export default function ResultScreen({ route, navigation, user }) {
                       </View>
                     )}
 
-                    <TouchableOpacity 
-                      style={[styles.checkboxContainer, { marginTop: unsureMode ? 10 : 20 }]} 
-                      onPress={() => toggleSelection(index)}
+                    <TouchableOpacity
+                      style={[styles.checkboxContainer, { marginTop: unsureMode ? 10 : 20 }]}
+                      onPress={() => toggleSaveSelection(index)}
                     >
                       <Ionicons 
-                        name={isSelected ? "checkbox" : "square-outline"} 
+                        name={pred.selected ? "checkbox" : "checkbox-outline"} 
                         size={24} 
-                        color={isSelected ? "#1E6C5B" : "#666"} 
+                        color={pred.selected ? "#1E6C5B" : "#666"} 
                       />
-                      <Text style={[styles.checkboxLabel, isSelected ? {color: "#1E6C5B"} : {color: "#666"}]}>
-                        {isSelected ? "บันทึกชิ้นนี้" : "ไม่บันทึกชิ้นนี้"}
+                      <Text style={[styles.checkboxLabel, pred.selected ? {color: "#1E6C5B"} : {color: "#666"}]}>
+                        {pred.selected ? "บันทึกผล" : "ไม่บันทึกผล"}
                       </Text>
                     </TouchableOpacity>
+                    <View style={styles.checkboxContainer}>
+                      <Ionicons 
+                        name={pred.userConfirmedType ? "alert-circle-outline" : "checkmark-circle-outline"} 
+                        size={20} 
+                        color={pred.userConfirmedType ? "#ff9900" : "#1E6C5B"} 
+                      />
+                      <Text style={[styles.checkboxLabel, pred.userConfirmedType ? {color: "#ff9900"} : {color: "#1E6C5B"}]}> 
+                        {pred.userConfirmedType ? "แก้ไขประเภทแล้ว" : "ยังไม่ได้แก้ไขประเภท"}
+                      </Text>
+                    </View>
+                    {pred.userConfirmedType && (
+                      <TouchableOpacity style={styles.cancelEditBtn} onPress={() => cancelEdit(index)}>
+                        <Text style={styles.cancelEditText}>ยกเลิกแก้ไข</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 );
               })}
 
               <TouchableOpacity
-                style={[styles.actionBtn, selectedIndexes.size === 0 && styles.actionBtnSkip]}
+                style={styles.actionBtn}
                 onPress={handleSave}
               >
                 <Ionicons 
-                  name={selectedIndexes.size === 0 ? "close-circle-outline" : "bookmark-outline"} 
+                  name="bookmark-outline" 
                   size={20} 
                   color="#fff" 
                 />
                 <Text style={styles.actionBtnText}>
-                  {selectedIndexes.size === 0 ? "ยกเลิกและกลับสู่หน้าหลัก" : `บันทึกประวัติ (${selectedIndexes.size} ชิ้น)`}
+                  บันทึกประวัติ
                 </Text>
               </TouchableOpacity>
             </View>
@@ -428,6 +494,23 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     fontWeight: "500",
+  },
+  cancelEditBtn: {
+    marginTop: 10,
+    alignSelf: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: "#F8D7DA",
+  },
+  cancelEditText: {
+    color: "#B91C1C",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  checkboxButton: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   actionBtn: {
     backgroundColor: "#0F3D34",

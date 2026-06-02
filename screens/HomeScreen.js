@@ -19,7 +19,10 @@ import {
 } from "@expo-google-fonts/baloo-tammudu-2";
 import { supabase } from "../supabase";
 import { loadStreak, loadMaxStreak } from "../utils/streakService";
-import { calculateAchievements, calculateConsecutiveCorrect, calculateTotalPoints } from "../utils/achievementService";
+import { calculateAchievements, calculateTotalPoints, calculateCO2 } from "../utils/achievementService";
+import { fetchUserResults } from "../utils/resultService";
+import { fetchGameHistory } from "../utils/gameService";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -109,7 +112,7 @@ const getCategoryIcon = (categoryName) => {
     case "Metal":
       return (
         <MaterialCommunityIcons
-          name="can"
+          name="silverware-fork-knife"
           size={iconSize}
           color={iconColor}
         />
@@ -142,14 +145,6 @@ const getCategoryIcon = (categoryName) => {
   }
 };
 
-// สูตรคำนวณ CO2 ตามประเภทขยะ (เหมือนหน้าโปรไฟล์)
-function calculateCO2(materialName) {
-  const name = materialName?.toUpperCase();
-  if (name?.includes("PETE") || name?.includes("PLASTIC")) return 0.05;
-  if (name?.includes("GLASS")) return 0.1;
-  if (name?.includes("METAL") || name?.includes("CAN")) return 0.2;
-  return 0.02;
-}
 
 export default function HomeScreen({ user, navigation }) {
   const [results, setResults] = useState([]);
@@ -179,26 +174,53 @@ export default function HomeScreen({ user, navigation }) {
     { id: "ps", name: "PS", sub: "Resin Code 6" },
   ];
 
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user) {
+        loadData();
+      }
+    }, [user])
+  );
+
   const loadData = async () => {
     if (!user?.id) return;
 
     setLoading(true);
 
     try {
-      const { data: recentData } = await supabase
-        .from("result")
-        .select(`id, scan_date, material (material_name, recycle)`)
-        .eq("user_id", user.id)
-        .order("scan_date", { ascending: false })
-        .limit(3);
+      // Fetch goal data
+      let goalTarget = null;
+      let goalStartDate = null;
+      let goalXp = 50;
+      try {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("goal_target, goal_start_date, goal_xp")
+          .eq("id", user.id)
+          .single();
+        if (userData) {
+          goalTarget = userData.goal_target;
+          goalStartDate = userData.goal_start_date;
+          if (userData.goal_xp) goalXp = userData.goal_xp;
+        }
+      } catch (e) {
+        // Ignore if columns don't exist
+      }
+
+      const recentData = await fetchUserResults({
+        userId: user.id,
+        orderBy: "scan_date",
+        ascending: false,
+        limit: 3,
+      });
 
       setResults(recentData || []);
 
-      const { data: allData } = await supabase
-        .from("result")
-        .select(`id, scan_date, material (material_name, recycle)`)
-        .eq("user_id", user.id)
-        .order("scan_date", { ascending: false });
+      const allData = await fetchUserResults({
+        userId: user.id,
+        orderBy: "scan_date",
+        ascending: false,
+      });
 
       let categoriesCount = 0;
       if (allData) {
@@ -216,9 +238,9 @@ export default function HomeScreen({ user, navigation }) {
       let xpPoints = 0;
       let totalCO2 = 0;
       if (allData) {
-        const calculatedAchievements = calculateAchievements(allData, streak);
-        const consecutiveCorrect = calculateConsecutiveCorrect(allData);
-        xpPoints = calculateTotalPoints(allData, calculatedAchievements, consecutiveCorrect);
+        const gameHistory = await fetchGameHistory(user.id);
+        const calculatedAchievements = calculateAchievements(allData, streak, goalTarget, goalStartDate, goalXp);
+        xpPoints = calculateTotalPoints(allData, calculatedAchievements, gameHistory);
         // Calculate CO2 saved based on scanned materials
         totalCO2 = allData.reduce((sum, item) => sum + calculateCO2(item.material?.material_name), 0);
       }
@@ -354,6 +376,28 @@ export default function HomeScreen({ user, navigation }) {
         >
           <Ionicons name="image" size={20} color="#0F3D34" />
           <Text style={styles.mainBtnTextDark}>Upload from Gallery</Text>
+        </TouchableOpacity>
+
+        {/* PLAY GAMES CARD */}
+        <TouchableOpacity
+          style={styles.gameCard}
+          onPress={() => navigation.navigate("GameHub", { user })}
+        >
+          <View style={styles.gameCardIconBox}>
+            <MaterialCommunityIcons name="gamepad-variant" size={24} color="#FFF" />
+          </View>
+          <View style={styles.gameCardContent}>
+            <View style={styles.gameCardHeader}>
+              <Text style={styles.gameCardTitle}>มินิเกมสะสมแต้ม</Text>
+              <View style={styles.gameXpBadge}>
+                <Text style={styles.gameXpBadgeText}>+10 XP Daily</Text>
+              </View>
+            </View>
+            <Text style={styles.gameCardDesc}>
+              เล่นเกมฝนขยะ & จับคู่การ์ดความจำเพื่อรับ XP ประจำวัน และโบนัสต่อเนื่อง 7 วัน!
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#1E6C5B" style={{ marginLeft: 5 }} />
         </TouchableOpacity>
 
         {/* CATEGORY */}
@@ -617,5 +661,54 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E6C5B",
     justifyContent: "center",
     alignItems: "center",
+  },
+  gameCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EAF4F0",
+    padding: 16,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    borderColor: "#B2DFDB",
+    marginBottom: 25,
+  },
+  gameCardIconBox: {
+    width: 48,
+    height: 48,
+    backgroundColor: "#1E6C5B",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  gameCardContent: {
+    flex: 1,
+  },
+  gameCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  gameCardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#0F3D34",
+  },
+  gameCardDesc: {
+    fontSize: 12,
+    color: "#4E605A",
+    lineHeight: 16,
+  },
+  gameXpBadge: {
+    backgroundColor: "#FFD700",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  gameXpBadgeText: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#856600",
   },
 });

@@ -75,7 +75,7 @@ const getCategoryIcon = (categoryName) => {
       );
     case "Metal":
       return (
-        <MaterialCommunityIcons name="can" size={iconSize} color={iconColor} />
+        <MaterialCommunityIcons name="silverware-fork-knife" size={iconSize} color={iconColor} />
       );
     case "Paper":
       return (
@@ -210,7 +210,7 @@ export default function CategoryHistoryScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Recyclable Categories</Text>
+        <Text style={styles.headerTitle}>หมวดหมู่รีไซเคิล</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -239,7 +239,7 @@ export default function CategoryHistoryScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF" },
+  container: { flex: 1, backgroundColor: "#F6F8F7" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -248,6 +248,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
+    backgroundColor: "#FFF",
   },
   backBtn: { padding: 5 },
   headerTitle: {

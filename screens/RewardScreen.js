@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { supabase } from "../supabase";
-import { calculateTotalPoints, calculateAchievements, calculateConsecutiveCorrect } from "../utils/achievementService";
+import { calculateTotalPoints, calculateAchievements, calculateCO2 } from "../utils/achievementService";
 import { loadStreak } from "../utils/streakService";
+import { fetchUserResults } from "../utils/resultService";
+import { fetchGameHistory, calculateGamePoints } from "../utils/gameService";
 
 export default function RewardScreen({ route, navigation }) {
   const { user } = route.params;
@@ -26,51 +28,140 @@ export default function RewardScreen({ route, navigation }) {
 
   const loadData = async () => {
     try {
-      const { data: allData } = await supabase
-        .from("result")
-        .select(`id, scan_date, material (material_name)`)
-        .eq("user_id", user.id)
-        .order("scan_date", { ascending: false });
+      // Fetch goal data
+      let goalTarget = null;
+      let goalStartDate = null;
+      let goalXp = 50;
+      try {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("goal_target, goal_start_date, goal_xp")
+          .eq("id", user.id)
+          .single();
+        if (userData) {
+          goalTarget = userData.goal_target;
+          goalStartDate = userData.goal_start_date;
+          if (userData.goal_xp) goalXp = userData.goal_xp;
+        }
+      } catch (e) {
+        // Ignore if columns don't exist
+      }
 
-      if (allData) {
-        const mappedAll = allData.map(item => ({
-          ...item,
-          material: item.material
-        }));
+      const allData = await fetchUserResults({
+        userId: user.id,
+        orderBy: "scan_date",
+        ascending: false,
+      });
 
-        const streakCount = await loadStreak(user.id);
-        const achievementsList = calculateAchievements(mappedAll, streakCount);
-        const consecutiveCorrect = calculateConsecutiveCorrect(mappedAll);
-        const totalPoints = calculateTotalPoints(mappedAll, achievementsList, consecutiveCorrect);
-        
-        setPoints(totalPoints);
+      const gameHistory = await fetchGameHistory(user.id);
+      const mappedAll = (allData || []).map(item => ({
+        ...item,
+        material: item.material
+      }));
 
-        // สร้างประวัติคะแนนจากการสแกน (2 แต้มต่อชิ้น)
-        const historyData = mappedAll.map(item => ({
+      const streakCount = await loadStreak(user.id);
+      const achievementsList = calculateAchievements(mappedAll, streakCount, goalTarget, goalStartDate, goalXp);
+      const totalPoints = calculateTotalPoints(mappedAll, achievementsList, gameHistory);
+      
+      setPoints(totalPoints);
+
+      // คำนวณคาร์บอนสะสมทั้งหมดจากขยะที่ไม่ได้แก้ไขด้วยมือ
+      const cleanData = mappedAll.filter(item => !(item.edit === 0 || item.is_manual));
+      let totalCO2 = 0;
+      cleanData.forEach(item => {
+        totalCO2 += calculateCO2(item.material?.material_name);
+      });
+
+      // สร้างประวัติคะแนนจากการสแกน (ได้ 2 แต้มฐานต่อการสแกน)
+      const historyData = mappedAll.map(item => {
+        const isManual = item.edit === 0 || item.is_manual;
+        const co2 = calculateCO2(item.material?.material_name);
+        return {
           id: item.id.toString(),
           title: `สแกนขยะ (${item.material?.material_name || 'Unknown'})`,
-          points: "+2 XP",
+          points: isManual ? "+0 XP" : "+2 XP",
+          subtitle: isManual 
+            ? "แก้ไขด้วยมือ - ไม่ได้คะแนน" 
+            : `ได้รับแต้มฐานสแกน +2 XP (ลด CO₂ ได้ ${co2}kg)`,
           date: new Date(item.scan_date).toLocaleString('th-TH', { 
             year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
           }),
+          timestamp: new Date(item.scan_date).getTime(),
           icon: "camera-iris",
-        }));
-        
-        // เพิ่มโบนัส Achievements เข้าไปบนสุด (ไม่มีวันที่ที่แน่นอน)
-        const unlockedAchievements = achievementsList.filter(a => a.unlocked);
-        unlockedAchievements.forEach(ach => {
-          historyData.unshift({
-            id: `ach_${ach.id}`,
-            title: `ปลดล็อก: ${ach.title}`,
-            points: `+${ach.points} XP`,
-            date: "Achievement Bonus",
-            icon: ach.icon,
-            isAchievement: true
-          });
-        });
+        };
+      });
 
-        setHistory(historyData);
+      // เพิ่มประวัติการเล่นเกมมินิเกมรายวัน
+      gameHistory.forEach(item => {
+        historyData.push({
+          id: `game_${item.game_type}_${item.played_date}`,
+          title: item.game_type === "catcher" ? "เล่นเกมฝนขยะสำเร็จ" : "เล่นเกมจับคู่การ์ดความจำสำเร็จ",
+          points: "+5 XP",
+          subtitle: "โบนัสผ่านด่านประจำวัน",
+          date: new Date(item.played_date).toLocaleDateString('th-TH', { 
+            year: 'numeric', month: 'short', day: 'numeric'
+          }),
+          timestamp: new Date(item.played_date).getTime(),
+          icon: "gamepad-variant",
+        });
+      });
+
+      // เรียงลำดับประวัติการสแกนและเกมรวมกัน (จากใหม่ไปเก่าตามเวลาจริง)
+      historyData.sort((a, b) => b.timestamp - a.timestamp);
+
+      // เพิ่มโบนัสสะสมคาร์บอน (ทุกๆ 0.5 kg = 10 XP)
+      const accumulatedCarbonPoints = Math.floor(totalCO2 / 0.5) * 10;
+      if (accumulatedCarbonPoints > 0) {
+        historyData.unshift({
+          id: "carbon_bonus",
+          title: "โบนัสลดคาร์บอนสะสม",
+          points: `+${accumulatedCarbonPoints} XP`,
+          subtitle: `สะสมคาร์บอนรวมได้ ${totalCO2.toFixed(2)} kg (รับโบนัส +10 XP ทุกๆ 0.5 kg)`,
+          date: "Carbon Savings Bonus",
+          icon: "leaf",
+          isAchievement: true
+        });
       }
+
+      // เพิ่มโบนัสสตรีคมินิเกม (7 วันติดต่อกัน +20 XP)
+      const { catcherStreakBonus, memoryStreakBonus } = calculateGamePoints(gameHistory);
+      if (catcherStreakBonus > 0) {
+        historyData.unshift({
+          id: "catcher_streak_bonus",
+          title: "โบนัสสตรีค 7 วัน: เกมฝนขยะ",
+          points: `+${catcherStreakBonus} XP`,
+          subtitle: "ผ่านด่านมินิเกมฝนขยะต่อเนื่องครบ 7 วัน",
+          date: "Game Streak Bonus",
+          icon: "fire",
+          isAchievement: true
+        });
+      }
+      if (memoryStreakBonus > 0) {
+        historyData.unshift({
+          id: "memory_streak_bonus",
+          title: "โบนัสสตรีค 7 วัน: เกมจับคู่การ์ด",
+          points: `+${memoryStreakBonus} XP`,
+          subtitle: "ผ่านด่านมินิเกมการ์ดความจำต่อเนื่องครบ 7 วัน",
+          date: "Game Streak Bonus",
+          icon: "fire",
+          isAchievement: true
+        });
+      }
+
+      // เพิ่มโบนัส Achievements เข้าไปบนสุด (ไม่มีวันที่ที่แน่นอน)
+      const unlockedAchievements = achievementsList.filter(a => a.unlocked);
+      unlockedAchievements.forEach(ach => {
+        historyData.unshift({
+          id: `ach_${ach.id}`,
+          title: `ปลดล็อก: ${ach.title}`,
+          points: `+${ach.points} XP`,
+          date: "Achievement Bonus",
+          icon: ach.icon,
+          isAchievement: true
+        });
+      });
+
+      setHistory(historyData);
     } catch (err) {
       console.log("Error loading rewards:", err);
     } finally {
@@ -148,6 +239,9 @@ export default function RewardScreen({ route, navigation }) {
               </View>
               <View style={styles.historyInfo}>
                 <Text style={styles.historyTitle}>{item.title}</Text>
+                {item.subtitle ? (
+                  <Text style={styles.historySubtitle}>{item.subtitle}</Text>
+                ) : null}
                 <Text style={styles.historyDate}>{item.date}</Text>
               </View>
               <Text style={styles.historyPoints}>{item.points}</Text>
@@ -188,6 +282,7 @@ const styles = StyleSheet.create({
   historyIconBox: { width: 40, height: 40, backgroundColor: "#EAF4F0", borderRadius: 20, justifyContent: "center", alignItems: "center", marginRight: 15 },
   historyInfo: { flex: 1 },
   historyTitle: { fontSize: 14, fontWeight: "bold", color: "#333" },
-  historyDate: { fontSize: 12, color: "#999", marginTop: 4 },
+  historySubtitle: { fontSize: 12, color: "#666", marginTop: 2 },
+  historyDate: { fontSize: 11, color: "#999", marginTop: 4 },
   historyPoints: { fontSize: 16, fontWeight: "bold", color: "#1E6C5B" },
 });

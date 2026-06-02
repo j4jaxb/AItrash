@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { supabase } from "../supabase";
+import { calculateCO2 } from "../utils/achievementService";
 
 // ✅ format date
 const formatScanDate = (dateString) => {
@@ -53,7 +54,7 @@ const getCategoryIcon = (categoryName) => {
       return <MaterialCommunityIcons name="glass-fragile" size={iconSize} color={iconColor} />;
     case "metal":
     case "Metal":
-      return <MaterialCommunityIcons name="can" size={iconSize} color={iconColor} />;
+      return <MaterialCommunityIcons name="silverware-fork-knife" size={iconSize} color={iconColor} />;
     case "paper":
     case "Paper":
       return <Ionicons name="document-text-outline" size={iconSize} color={iconColor} />;
@@ -67,15 +68,13 @@ const getCategoryIcon = (categoryName) => {
 export default function ScanHistoryScreen({ navigation, route }) {
   const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("date");
-  const [sortOrder, setSortOrder] = useState("desc");
 
   const user = route.params?.user;
   const filterCategory = route.params?.filterCategory;
 
   useEffect(() => {
     if (user?.id) loadScans();
-  }, [user, sortBy, sortOrder, filterCategory]);
+  }, [user, filterCategory]);
 
   const loadScans = async () => {
     setLoading(true);
@@ -85,6 +84,8 @@ export default function ScanHistoryScreen({ navigation, route }) {
         .select(`
           id,
           scan_date,
+          edit,
+          is_manual,
           material:material_id (
             material_name,
             recycle
@@ -98,29 +99,15 @@ export default function ScanHistoryScreen({ navigation, route }) {
         return;
       }
 
-      let filtered = (data || []).filter(
-        (item) => item.material && item.material.material_name
-      );
+      let filtered = (data || []);
 
       if (filterCategory) {
         filtered = filtered.filter(
-          (item) => item.material.material_name === filterCategory
+          (item) => item.material?.material_name === filterCategory
         );
       }
 
-      if (sortBy === "date") {
-        filtered.sort((a, b) =>
-          sortOrder === "asc"
-            ? new Date(a.scan_date) - new Date(b.scan_date)
-            : new Date(b.scan_date) - new Date(a.scan_date)
-        );
-      } else {
-        filtered.sort((a, b) =>
-          sortOrder === "asc"
-            ? a.material.material_name.localeCompare(b.material.material_name)
-            : b.material.material_name.localeCompare(a.material.material_name)
-        );
-      }
+      filtered.sort((a, b) => new Date(b.scan_date) - new Date(a.scan_date));
       setScans(filtered);
     } catch (err) {
       console.log("Load scans network error", err);
@@ -130,39 +117,52 @@ export default function ScanHistoryScreen({ navigation, route }) {
     }
   };
 
-  const toggleSort = () => {
-    setSortBy((prev) => (prev === "date" ? "material" : "date"));
-  };
+  const renderScan = ({ item }) => {
+    const isManual = item.edit === 0 || item.is_manual;
+    const co2 = calculateCO2(item.material?.material_name);
 
-  const toggleOrder = () => {
-    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
-  };
+    return (
+      <View style={styles.scanCard}>
+        <View style={styles.scanIconBox}>
+          {getCategoryIcon(item.material?.material_name)}
+        </View>
 
-  const renderScan = ({ item }) => (
-    <View style={styles.scanCard}>
-      <View style={styles.scanIconBox}>
-        {getCategoryIcon(item.material.material_name)}
-      </View>
-
-      <View style={styles.scanDetails}>
-        <Text style={styles.scanName}>
-          {item.material.material_name}
-        </Text>
-        {item.material.recycle && (
-          <Text style={styles.scanSub}>
-            {item.material.recycle}
+        <View style={styles.scanDetails}>
+          <Text style={styles.scanName}>
+            {item.material?.material_name || "Unknown"}
           </Text>
-        )}
-        <Text style={styles.scanTime}>
-          {formatScanDate(item.scan_date)}
-        </Text>
-      </View>
+          {item.material?.recycle && (
+            <Text style={styles.scanSub}>
+              {item.material.recycle}
+            </Text>
+          )}
+          {isManual ? (
+            <Text style={{ fontSize: 11, color: "#999", marginVertical: 2 }}>
+              ✏️ แก้ไขด้วยมือ (0 XP)
+            </Text>
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 3 }}>
+              <MaterialCommunityIcons name="leaf" size={12} color="#1E6C5B" />
+              <Text style={{ fontSize: 11, color: "#1E6C5B", marginLeft: 2, marginRight: 8, fontWeight: "bold" }}>
+                +2 XP
+              </Text>
+              <MaterialCommunityIcons name="cloud-outline" size={12} color="#666" />
+              <Text style={{ fontSize: 11, color: "#666", marginLeft: 2, fontWeight: "500" }}>
+                {co2}kg CO₂
+              </Text>
+            </View>
+          )}
+          <Text style={styles.scanTime}>
+            {formatScanDate(item.scan_date)}
+          </Text>
+        </View>
 
-      <View style={styles.checkCircle}>
-        <Ionicons name="checkmark" size={14} color="#fff" />
+        <View style={styles.checkCircle}>
+          <Ionicons name="checkmark" size={14} color="#fff" />
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -174,28 +174,10 @@ export default function ScanHistoryScreen({ navigation, route }) {
 
         <Text style={styles.headerTitle}>
           {filterCategory
-            ? `Scans: ${filterCategory}`
-            : "Scan History"}
+              ? `ประวัติการสแกน: ${filterCategory}`
+              : "ประวัติการสแกน"}
         </Text>
-
         <View style={{ width: 34 }} />
-      </View>
-
-      {/* SORT */}
-      <View style={styles.sortContainer}>
-        <TouchableOpacity style={styles.sortButton} onPress={toggleSort}>
-          <Text style={styles.sortText}>
-            {`Sort by ${sortBy === "date" ? "Material" : "Date"}`}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.sortButton} onPress={toggleOrder}>
-          <Ionicons
-            name={sortOrder === "desc" ? "arrow-down" : "arrow-up"}
-            size={16}
-            color="#000"
-          />
-        </TouchableOpacity>
       </View>
 
       {/* LIST */}
@@ -212,7 +194,7 @@ export default function ScanHistoryScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No scan history found.</Text>
+              <Text style={styles.emptyText}>ยังไม่มีประวัติการสแกน</Text>
             </View>
           }
         />
@@ -222,7 +204,7 @@ export default function ScanHistoryScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF" },
+  container: { flex: 1, backgroundColor: "#F6F8F7" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -231,23 +213,10 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
+    backgroundColor: "#FFF",
   },
   backBtn: { padding: 5 },
   headerTitle: { fontSize: 18, fontWeight: "bold", textAlign: 'center', flex: 1 },
-  sortContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
-  },
-  sortText: { fontSize: 13, marginRight: 5, color: "#333" },
   listContainer: { padding: 20, paddingBottom: 40 },
   scanCard: {
     flexDirection: "row",

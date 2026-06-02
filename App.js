@@ -19,6 +19,9 @@ import RewardScreen from './screens/RewardScreen';
 import PrivacySettingsScreen from './screens/PrivacySettingsScreen';
 import AboutAppScreen from './screens/AboutAppScreen';
 import HelpSupportScreen from './screens/HelpSupportScreen';
+import GameHubScreen from './screens/GameHubScreen';
+import TrashCatcherGameScreen from './screens/TrashCatcherGameScreen';
+import MemoryGameScreen from './screens/MemoryGameScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -116,6 +119,15 @@ export default function App() {
         <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
         <Stack.Screen name="AboutApp" component={AboutAppScreen} />
         <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+        <Stack.Screen name="GameHub">
+          {(props) => <GameHubScreen {...props} user={user} />}
+        </Stack.Screen>
+        <Stack.Screen name="TrashCatcherGame">
+          {(props) => <TrashCatcherGameScreen {...props} user={user} />}
+        </Stack.Screen>
+        <Stack.Screen name="MemoryGame">
+          {(props) => <MemoryGameScreen {...props} user={user} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );

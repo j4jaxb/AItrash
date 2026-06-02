@@ -12,6 +12,7 @@ import {
   Image,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   useFonts,
   BalooTammudu2_400Regular,
@@ -19,7 +20,9 @@ import {
 } from "@expo-google-fonts/baloo-tammudu-2";
 import { supabase } from "../supabase";
 import { loadStreak, loadMaxStreak } from "../utils/streakService";
-import { calculateAchievements, calculateConsecutiveCorrect, calculateTotalPoints } from "../utils/achievementService";
+import { calculateAchievements, calculateTotalPoints, calculateCO2 } from "../utils/achievementService";
+import { fetchUserResults, fetchAllUserResults } from "../utils/resultService";
+import { fetchGameHistory } from "../utils/gameService";
 
 const { width } = Dimensions.get("window");
 
@@ -37,7 +40,7 @@ const getCategoryIcon = (categoryName) => {
     case "glass":
     case "Glass": return <MaterialCommunityIcons name="glass-fragile" size={iconSize} color={iconColor} />;
     case "metal":
-    case "Metal": return <MaterialCommunityIcons name="can" size={iconSize} color={iconColor} />;
+    case "Metal": return <MaterialCommunityIcons name="silverware-fork-knife" size={iconSize} color={iconColor} />;
     case "paper":
     case "Paper": return <Ionicons name="document-text-outline" size={iconSize} color={iconColor} />;
     case "Non-recyclable": return <MaterialCommunityIcons name="trash-can-outline" size={iconSize} color={iconColor} />;
@@ -54,7 +57,6 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
     points: 0,
     co2Saved: 0,
     maxStreak: 0,
-    consecutiveCorrect: 0,
     recycledCount: 0,
   });
   const [achievementsList, setAchievementsList] = useState([]);
@@ -65,24 +67,32 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
     BalooTammudu2_700Bold,
   });
 
-  // สูตรคำนวณ CO2 ตามประเภทขยะ
-  const calculateCO2 = (materialName) => {
-    const name = materialName?.toUpperCase();
-    if (name?.includes("PETE") || name?.includes("PLASTIC")) return 0.05;
-    if (name?.includes("GLASS")) return 0.1;
-    if (name?.includes("METAL") || name?.includes("CAN")) return 0.2;
-    return 0.02;
-  };
 
   const loadProfileData = async () => {
     if (!user?.id) return;
     setLoading(true);
     try {
+      // Fetch goal data
+      let goalTarget = null;
+      let goalStartDate = null;
+      let goalXp = 50;
+      try {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("goal_target, goal_start_date, goal_xp")
+          .eq("id", user.id)
+          .single();
+        if (userData) {
+          goalTarget = userData.goal_target;
+          goalStartDate = userData.goal_start_date;
+          if (userData.goal_xp) goalXp = userData.goal_xp;
+        }
+      } catch (e) {
+        // Ignore if columns don't exist
+      }
+
       // ดึงสถิติจริงจาก Supabase [cite: 4, 5, 8, 9]
-      const { data: allData } = await supabase
-        .from("result")
-        .select(`id, scan_date, material (material_name, recycle)`)
-        .eq("user_id", user.id);
+      const allData = await fetchAllUserResults(user.id);
 
       if (allData) {
         const mappedAll = allData.map(item => ({
@@ -92,8 +102,6 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
 
         const total = mappedAll.length;
         const sevenPlastics = ["PETE", "HDPE", "PVC", "LDPE", "PP", "PS"];
-        
-        const consecutiveCorrect = calculateConsecutiveCorrect(mappedAll);
 
         const recycledCount = mappedAll.filter(item => 
           sevenPlastics.includes(item.material?.material_name?.toUpperCase())
@@ -106,11 +114,12 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
         const streakCount = await loadStreak(user.id);
         const maxStreakCount = await loadMaxStreak(user.id);
         
-        const calculatedAchievements = calculateAchievements(mappedAll, streakCount);
+        const calculatedAchievements = calculateAchievements(mappedAll, streakCount, goalTarget, goalStartDate, goalXp);
         setAchievementsList(calculatedAchievements);
         const unlockedCount = calculatedAchievements.filter(a => a.unlocked).length;
 
-        const totalPoints = calculateTotalPoints(mappedAll, calculatedAchievements, consecutiveCorrect);
+        const gameHistory = await fetchGameHistory(user.id);
+        const totalPoints = calculateTotalPoints(mappedAll, calculatedAchievements, gameHistory);
 
         setStats({
           totalScans: total,
@@ -118,18 +127,17 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
           points: totalPoints,
           co2Saved: totalCO2.toFixed(2),
           maxStreak: maxStreakCount,
-          consecutiveCorrect: consecutiveCorrect,
           recycledCount: recycledCount,
         });
       }
 
       // ดึง 3 รายการล่าสุด [cite: 17, 18, 22, 25]
-      const { data: recentData } = await supabase
-        .from("result")
-        .select(`id, scan_date, material (material_name, recycle)`)
-        .eq("user_id", user.id)
-        .order("scan_date", { ascending: false })
-        .limit(3);
+      const recentData = await fetchUserResults({
+        userId: user.id,
+        orderBy: "scan_date",
+        ascending: false,
+        limit: 3,
+      });
       
       const mappedRecent = (recentData || []).map(item => ({
         ...item,
@@ -144,9 +152,11 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
     }
   };
 
-  useEffect(() => {
-    loadProfileData();
-  }, [user]);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadProfileData();
+    }, [user])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);

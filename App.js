@@ -73,7 +73,7 @@ function MainTabs({ user, setUser }) {
       })}
     >
       <Tab.Screen name="Home" options={{ tabBarLabel: 'Home' }}>
-        {(props) => <HomeScreen {...props} user={user} />}
+        {(props) => <HomeScreen {...props} user={user} parentNavigation={props.navigation} />}
       </Tab.Screen>
       <Tab.Screen name="Stat" options={{ tabBarLabel: 'Stats' }}>
         {(props) => <StatScreen {...props} user={user} />}

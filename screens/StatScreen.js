@@ -314,7 +314,10 @@ export default function StatScreen({ user }) {
         <View style={{ flexDirection: "row", marginVertical: 10 }}>
           <TouchableOpacity
             style={styles.actionBtn}
-            onPress={() => navigation.navigate("ScanHistory", { user })}
+            onPress={() => {
+              const rootNav = navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+              rootNav.navigate("ScanHistory", { user });
+            }}
           >
             <Text style={styles.actionBtnText}>History</Text>
           </TouchableOpacity>

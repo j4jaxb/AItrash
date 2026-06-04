@@ -119,34 +119,70 @@ export default function RewardScreen({ route, navigation }) {
           subtitle: `สะสมคาร์บอนรวมได้ ${totalCO2.toFixed(2)} kg (รับโบนัส +10 XP ทุกๆ 0.5 kg)`,
           date: "Carbon Savings Bonus",
           icon: "leaf",
-          isAchievement: true
+          isAchievement: true,
+          timestamp: 0
         });
       }
 
       // เพิ่มโบนัสสตรีคมินิเกม (7 วันติดต่อกัน +20 XP)
       const { catcherStreakBonus, memoryStreakBonus } = calculateGamePoints(gameHistory);
-      if (catcherStreakBonus > 0) {
-        historyData.unshift({
-          id: "catcher_streak_bonus",
+
+      // Helper: find completion dates for each 7-day streak instance
+      const findStreakCompletionDates = (dates) => {
+        const results = [];
+        if (!dates || dates.length === 0) return results;
+        // ensure sorted ascending
+        const d = Array.from(new Set(dates)).sort((a,b) => new Date(a) - new Date(b));
+
+        let segStart = 0;
+        for (let i = 0; i < d.length; i++) {
+          const isLast = i === d.length - 1;
+          const nextDiffIsMoreThan1 = !isLast && (Math.round((new Date(d[i+1]) - new Date(d[i])) / (1000*60*60*24)) !== 1);
+
+          if (nextDiffIsMoreThan1 || isLast) {
+            // segment is from segStart..i
+            const segLen = i - segStart + 1;
+            const completeCount = Math.floor(segLen / 7);
+            for (let k = 1; k <= completeCount; k++) {
+              const completionIndex = segStart + (7 * k) - 1;
+              const completionDate = d[completionIndex];
+              results.push(completionDate);
+            }
+            segStart = i + 1;
+          }
+        }
+
+        return results;
+      };
+
+      // attach streak bonus entries with real timestamps so they sort by time received
+      const catcherCompletions = findStreakCompletionDates(gameHistory.filter(h => h.game_type === 'catcher').map(h => h.played_date));
+      catcherCompletions.forEach((dateStr, idx) => {
+        historyData.push({
+          id: `catcher_streak_bonus_${idx}_${dateStr}`,
           title: "โบนัสสตรีค 7 วัน: เกมฝนขยะ",
-          points: `+${catcherStreakBonus} XP`,
+          points: `+20 XP`,
           subtitle: "ผ่านด่านมินิเกมฝนขยะต่อเนื่องครบ 7 วัน",
-          date: "Game Streak Bonus",
+          date: new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
+          timestamp: new Date(dateStr).getTime(),
           icon: "fire",
-          isAchievement: true
+          isStreakBonus: true
         });
-      }
-      if (memoryStreakBonus > 0) {
-        historyData.unshift({
-          id: "memory_streak_bonus",
+      });
+
+      const memoryCompletions = findStreakCompletionDates(gameHistory.filter(h => h.game_type === 'memory').map(h => h.played_date));
+      memoryCompletions.forEach((dateStr, idx) => {
+        historyData.push({
+          id: `memory_streak_bonus_${idx}_${dateStr}`,
           title: "โบนัสสตรีค 7 วัน: เกมจับคู่การ์ด",
-          points: `+${memoryStreakBonus} XP`,
+          points: `+20 XP`,
           subtitle: "ผ่านด่านมินิเกมการ์ดความจำต่อเนื่องครบ 7 วัน",
-          date: "Game Streak Bonus",
+          date: new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
+          timestamp: new Date(dateStr).getTime(),
           icon: "fire",
-          isAchievement: true
+          isStreakBonus: true
         });
-      }
+      });
 
       // เพิ่มโบนัส Achievements เข้าไปบนสุด (ไม่มีวันที่ที่แน่นอน)
       const unlockedAchievements = achievementsList.filter(a => a.unlocked);
@@ -157,9 +193,13 @@ export default function RewardScreen({ route, navigation }) {
           points: `+${ach.points} XP`,
           date: "Achievement Bonus",
           icon: ach.icon,
-          isAchievement: true
+          isAchievement: true,
+          timestamp: 0
         });
       });
+
+      // Final sort: order by timestamp (newest first). Items without timestamps sink to bottom.
+      historyData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
       setHistory(historyData);
     } catch (err) {
@@ -234,8 +274,12 @@ export default function RewardScreen({ route, navigation }) {
         <ScrollView style={styles.contentScroll}>
           {history.length > 0 ? history.map((item, index) => (
             <View key={item.id} style={styles.historyCard}>
-              <View style={[styles.historyIconBox, item.isAchievement && { backgroundColor: '#FFD700' }]}>
-                <MaterialCommunityIcons name={item.icon} size={24} color={item.isAchievement ? "#B8860B" : "#1E6C5B"} />
+              <View style={[
+                styles.historyIconBox,
+                item.isAchievement && { backgroundColor: '#FFD700' },
+                item.isStreakBonus && { backgroundColor: '#EDE9FE' }
+              ]}>
+                <MaterialCommunityIcons name={item.icon} size={24} color={item.isStreakBonus ? "#6D28D9" : (item.isAchievement ? "#B8860B" : "#1E6C5B")} />
               </View>
               <View style={styles.historyInfo}>
                 <Text style={styles.historyTitle}>{item.title}</Text>

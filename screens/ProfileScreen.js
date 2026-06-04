@@ -234,7 +234,10 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
         <View style={styles.recentScansArea}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Scans</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("ScanHistory", { user })}>
+            <TouchableOpacity onPress={() => {
+              const rootNav = navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+              rootNav.navigate("ScanHistory", { user });
+            }}>
               <Text style={styles.viewAllText}>See History</Text>
             </TouchableOpacity>
           </View>

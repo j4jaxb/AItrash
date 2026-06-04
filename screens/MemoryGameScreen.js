@@ -327,7 +327,7 @@ export default function MemoryGameScreen({ navigation, user }) {
           <View style={styles.statsBar}>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>จับคู่ได้</Text>
-              <Text style={styles.statValue}>{matches} / 9 คู่</Text>
+              <Text style={styles.statValue}>{matches} / 6 คู่</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>จำนวนครั้งที่ทาย</Text>
@@ -374,8 +374,9 @@ export default function MemoryGameScreen({ navigation, user }) {
             <MaterialCommunityIcons name="trophy" size={80} color="#FFD700" style={{ marginBottom: 15 }} />
             <Text style={styles.modalTitle}>ยอดเยี่ยมมาก!</Text>
             <Text style={styles.modalDesc}>
-              คุณทายถูกครบทั้ง 9 คู่ใน {moves} ครั้ง ได้รับรางวัลและคะแนนโบนัสเรียบร้อยแล้ว
+              คุณทายถูกครบทั้ง 6 คู่ใน {moves} ครั้ง ได้รับรางวัลและคะแนนโบนัสเรียบร้อยแล้ว
             </Text>
+            <Text style={styles.successBig}>สำเร็จ6คู่</Text>
             <View style={styles.xpBonusBadge}>
               <MaterialCommunityIcons name="leaf" size={20} color="#FFF" />
               <Text style={styles.xpBonusText}>+5 XP ได้รับแล้ว</Text>
@@ -598,4 +599,11 @@ const styles = StyleSheet.create({
   xpBonusText: { color: "#FFF", fontWeight: "bold", fontSize: 14, marginLeft: 6 },
   closeModalBtn: { backgroundColor: "#0F3D34", paddingVertical: 12, paddingHorizontal: 30, borderRadius: 25 },
   closeModalText: { color: "#FFF", fontWeight: "bold", fontSize: 14 },
+  successBig: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#059669",
+    marginTop: 10,
+    marginBottom: 8,
+  },
 });

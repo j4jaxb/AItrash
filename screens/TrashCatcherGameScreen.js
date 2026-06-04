@@ -95,6 +95,7 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
   const gameInterval = useRef(null);
   const spawnInterval = useRef(null);
   const countdownInterval = useRef(null);
+  
 
   // สุ่มเลือกเป้าหมายที่จะเล่นในตาปัจจุบัน (เลือกแค่ครั้งเดียวตอนเริ่มเกม)
   const chooseGameTarget = () => {
@@ -203,8 +204,6 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
   const handleTapItem = (itemId, itemType, itemLabel) => {
     if (!isPlaying) return;
 
-    console.log("Tapped item:", itemLabel || itemType, "type=", itemType, "target=", targetType.name);
-
     // ลบขยะชิ้นที่ถูกแตะออกจากจอทันที
     setFallingItems(prev => prev.filter(item => item.id !== itemId));
 
@@ -221,6 +220,10 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
       return newScore;
     });
   };
+
+  
+
+  
 
   const handleWin = async () => {
     stopGame();
@@ -357,6 +360,7 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
             <Text style={styles.modalDesc}>
               เก่งมาก! คุณสะสมคะแนนครบ 20 แต้ม และได้รับโบนัสประจำวันเรียบร้อยแล้ว
             </Text>
+            <Text style={styles.successBig}>สำเร็จ20</Text>
             <View style={styles.xpBonusBadge}>
               <MaterialCommunityIcons name="leaf" size={20} color="#FFF" />
               <Text style={styles.xpBonusText}>+5 XP ได้รับแล้ว</Text>
@@ -548,5 +552,43 @@ const styles = StyleSheet.create({
     color: "#999",
     fontSize: 14,
     fontWeight: "bold",
+  },
+  tapEffect: {
+    position: "absolute",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
+    elevation: 4,
+  },
+  tapEffectText: {
+    color: "#E11D48",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+  ripple: {
+    position: "absolute",
+    // base style overridden inline for multiple layers
+    backgroundColor: "transparent",
+    borderWidth: 0,
+  },
+  sparkle: {
+    position: "absolute",
+    backgroundColor: "rgba(255,255,255,0.95)",
+    borderRadius: 6,
+    shadowColor: "#FFFFFF",
+    shadowOpacity: 0.7,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
+  },
+  successBig: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#059669",
+    marginTop: 10,
+    marginBottom: 8,
   },
 });

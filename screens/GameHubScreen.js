@@ -17,6 +17,10 @@ export default function GameHubScreen({ navigation, user }) {
   const [history, setHistory] = useState([]);
   const [catcherStats, setCatcherStats] = useState({ completedToday: false, currentStreak: 0 });
   const [memoryStats, setMemoryStats] = useState({ completedToday: false, currentStreak: 0 });
+  const [catcherWeek, setCatcherWeek] = useState([]);
+  const [memoryWeek, setMemoryWeek] = useState([]);
+  const [catcherWeekComplete, setCatcherWeekComplete] = useState(false);
+  const [memoryWeekComplete, setMemoryWeekComplete] = useState(false);
 
   const loadStats = async () => {
     try {
@@ -29,6 +33,36 @@ export default function GameHubScreen({ navigation, user }) {
 
       setCatcherStats(catcher);
       setMemoryStats(memory);
+      // build last-7-days arrays for each game
+      const buildWeek = (gameType) => {
+        const playedSet = new Set(historyList.filter(h => h.game_type === gameType).map(h => h.played_date));
+        // find Monday of current week
+        const today = new Date();
+        const jsDay = today.getDay(); // 0=Sun .. 6=Sat
+        const diffToMonday = (jsDay + 6) % 7; // days to subtract to get Monday
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - diffToMonday);
+
+        const labels = ['จ','อ','พ','พฤ','ศ','ส','อา']; // Monday..Sunday
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(monday);
+          d.setDate(monday.getDate() + i);
+          const dateStr = d.toISOString().split('T')[0];
+          days.push({ date: dateStr, played: playedSet.has(dateStr), label: labels[i] });
+        }
+
+        const complete = days.every(dt => dt.played === true);
+        return { days, complete };
+      };
+
+      const catcherWeekRes = buildWeek('catcher');
+      const memoryWeekRes = buildWeek('memory');
+
+      setCatcherWeek(catcherWeekRes.days);
+      setCatcherWeekComplete(catcherWeekRes.complete);
+      setMemoryWeek(memoryWeekRes.days);
+      setMemoryWeekComplete(memoryWeekRes.complete);
     } catch (e) {
       console.log("Error loading game stats:", e);
     } finally {
@@ -94,14 +128,21 @@ export default function GameHubScreen({ navigation, user }) {
             </Text>
             
             {/* STATS */}
-            <View style={styles.streakRow}>
-              <View style={styles.statPill}>
-                <MaterialCommunityIcons name="fire" size={16} color="#E65100" />
-                <Text style={styles.statPillText}>สตรีค: {catcherStats.currentStreak} วัน</Text>
+            <View style={styles.weekRow}>
+              {catcherWeek.map((d) => (
+                <View key={d.date} style={styles.dayCol}>
+                  <View style={[styles.dayDot, d.played && styles.dayDotDone]} />
+                  <Text style={[styles.dayLabel, d.played && styles.dayLabelDone]}>{d.label}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.statusRow}>
+              <View style={[styles.weekBadge, catcherWeekComplete ? styles.weekBadgeDone : styles.weekBadgePending]}>
+                <Text style={[styles.weekBadgeText, catcherWeekComplete && styles.weekBadgeTextDone]}>{catcherWeekComplete ? 'ครบสัปดาห์แล้ว' : 'ครบสัปดาห์ยังไม่ครบ'}</Text>
               </View>
-              <View style={[styles.statPill, catcherStats.completedToday ? styles.pillDone : styles.pillPlay]}>
+              <View style={[styles.statPill, catcherStats.completedToday ? styles.pillDone : styles.pillPlay]}> 
                 <Ionicons name={catcherStats.completedToday ? "checkmark-circle" : "ellipse-outline"} size={14} color={catcherStats.completedToday ? "#059669" : "#666"} />
-                <Text style={[styles.statPillText, catcherStats.completedToday && { color: "#059669" }]}>
+                <Text style={[styles.statPillText, catcherStats.completedToday && { color: "#059669" }]}> 
                   {catcherStats.completedToday ? "รับ XP แล้ว" : "วันนี้ยังไม่ได้เล่น"}
                 </Text>
               </View>
@@ -136,14 +177,21 @@ export default function GameHubScreen({ navigation, user }) {
             </Text>
             
             {/* STATS */}
-            <View style={styles.streakRow}>
-              <View style={styles.statPill}>
-                <MaterialCommunityIcons name="fire" size={16} color="#E65100" />
-                <Text style={styles.statPillText}>สตรีค: {memoryStats.currentStreak} วัน</Text>
+            <View style={styles.weekRow}>
+              {memoryWeek.map((d) => (
+                <View key={d.date} style={styles.dayCol}>
+                  <View style={[styles.dayDot, d.played && styles.dayDotDone]} />
+                  <Text style={[styles.dayLabel, d.played && styles.dayLabelDone]}>{d.label}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.statusRow}>
+              <View style={[styles.weekBadge, memoryWeekComplete ? styles.weekBadgeDone : styles.weekBadgePending]}>
+                <Text style={[styles.weekBadgeText, memoryWeekComplete && styles.weekBadgeTextDone]}>{memoryWeekComplete ? 'ครบสัปดาห์แล้ว' : 'ครบสัปดาห์ยังไม่ครบ'}</Text>
               </View>
-              <View style={[styles.statPill, memoryStats.completedToday ? styles.pillDone : styles.pillPlay]}>
+              <View style={[styles.statPill, memoryStats.completedToday ? styles.pillDone : styles.pillPlay]}> 
                 <Ionicons name={memoryStats.completedToday ? "checkmark-circle" : "ellipse-outline"} size={14} color={memoryStats.completedToday ? "#059669" : "#666"} />
-                <Text style={[styles.statPillText, memoryStats.completedToday && { color: "#059669" }]}>
+                <Text style={[styles.statPillText, memoryStats.completedToday && { color: "#059669" }]}> 
                   {memoryStats.completedToday ? "รับ XP แล้ว" : "วันนี้ยังไม่ได้เล่น"}
                 </Text>
               </View>
@@ -246,4 +294,16 @@ const styles = StyleSheet.create({
   },
   playBtnDisabled: { backgroundColor: "#789F97" },
   playBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 14, marginRight: 8 },
+  weekRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
+  dayCol: { alignItems: "center", width: 28 },
+  dayDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: "#E6EEF5", borderWidth: 1, borderColor: "#D1E7F0" },
+  dayDotDone: { backgroundColor: "#059669", borderColor: "rgba(5,150,105,0.9)" },
+  dayLabel: { fontSize: 10, color: "#7A7A7A", marginTop: 4 },
+  dayLabelDone: { color: "#059669", fontWeight: "bold" },
+  statusRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", marginBottom: 8 },
+  weekBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, marginBottom: 4 },
+  weekBadgePending: { backgroundColor: "#FFF7E6", borderColor: "#FFE8B8" },
+  weekBadgeDone: { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" },
+  weekBadgeText: { fontSize: 12, color: "#8A8A8A", fontWeight: "bold" },
+  weekBadgeTextDone: { color: "#059669" },
 });

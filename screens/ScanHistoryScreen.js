@@ -9,8 +9,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { supabase } from "../supabase";
 import { calculateCO2 } from "../utils/achievementService";
+import { fetchUserResults } from "../utils/resultService";
 
 // ✅ format date
 const formatScanDate = (dateString) => {
@@ -34,7 +34,7 @@ const formatScanDate = (dateString) => {
 // ✅ ฟังก์ชันเลือกไอคอน (คงเดิมเพื่อให้ UI ลิงก์กันทุกหน้า)
 const getCategoryIcon = (categoryName) => {
   const iconSize = 26;
-  const iconColor = "#1A1A1A";
+  const iconColor = "#004743";
 
   switch (categoryName) {
     case "PETE":
@@ -79,27 +79,13 @@ export default function ScanHistoryScreen({ navigation, route }) {
   const loadScans = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("result")
-        .select(`
-          id,
-          scan_date,
-          edit,
-          is_manual,
-          material:material_id (
-            material_name,
-            recycle
-          )
-        `)
-        .eq("user_id", user.id);
+      const data = await fetchUserResults({
+        userId: user.id,
+        orderBy: "scan_date",
+        ascending: false,
+      });
 
-      if (error) {
-        console.log("Load scans error", error);
-        setScans([]);
-        return;
-      }
-
-      let filtered = (data || []);
+      let filtered = data || [];
 
       if (filterCategory) {
         filtered = filtered.filter(
@@ -107,10 +93,9 @@ export default function ScanHistoryScreen({ navigation, route }) {
         );
       }
 
-      filtered.sort((a, b) => new Date(b.scan_date) - new Date(a.scan_date));
       setScans(filtered);
     } catch (err) {
-      console.log("Load scans network error", err);
+      console.log("Load scans error", err);
       setScans([]);
     } finally {
       setLoading(false);
@@ -221,30 +206,30 @@ const styles = StyleSheet.create({
   scanCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFFFFF",
     padding: 15,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#E4ECE8",
     marginBottom: 12,
   },
   scanIconBox: {
     width: 55,
     height: 55,
-    backgroundColor: "#F0F0F0",
+    backgroundColor: "#EAF4F0",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
   scanDetails: { flex: 1, marginLeft: 15 },
-  scanName: { fontWeight: "bold", fontSize: 15, color: "#1A1A1A" },
-  scanSub: { fontSize: 12, color: "#666", marginVertical: 2 },
-  scanTime: { fontSize: 11, color: "#AAA" },
+  scanName: { fontWeight: "bold", fontSize: 15, color: "#0F3D34" },
+  scanSub: { fontSize: 12, color: "#5E6E69", marginVertical: 2 },
+  scanTime: { fontSize: 11, color: "#98A59F" },
   checkCircle: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: "#1E6C5B",
     justifyContent: "center",
     alignItems: "center",
   },

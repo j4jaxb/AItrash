@@ -24,6 +24,8 @@ const { width } = Dimensions.get("window");
 const MARGIN = 20;
 const IMAGE_SIZE = width - MARGIN * 2;
 
+
+
 export default function ResultScreen({ route, navigation, user }) {
   const { image } = route.params;
   const [loading, setLoading] = useState(true);
@@ -91,6 +93,11 @@ export default function ResultScreen({ route, navigation, user }) {
         name: "scan.jpg",
       });
 
+      // ส่ง user_id ไปเพื่อให้เซิร์ฟเวอร์ดึงข้อมูลสแกนของวันนี้มาเทียบความซ้ำซ้อน
+      if (user?.id) {
+        formData.append("user_id", user.id);
+      }
+
       const response = await fetch(apiUrl, {
         method: "POST",
         body: formData,
@@ -100,6 +107,8 @@ export default function ResultScreen({ route, navigation, user }) {
       });
 
       const data = await response.json();
+      console.log("Server response similarity score:", data.similarity_score);
+      console.log("Server response predictions:", data.predictions);
       
       if (response.ok && data.predictions && data.predictions.length > 0) {
         setPredictions(data.predictions.map((pred) => ({
@@ -113,7 +122,11 @@ export default function ResultScreen({ route, navigation, user }) {
           setDisplayImage(data.image_base64);
         }
       } else {
-        setErrorMsg(data.error || "ไม่พบขยะในภาพ หรือความมั่นใจต่ำเกินไป");
+        if (data.is_duplicate) {
+          setErrorMsg(data.error || "ปฏิเสธแต้ม: ตรวจพบว่าเป็นขยะชิ้นเดิมที่คุณเพิ่งแสกน");
+        } else {
+          setErrorMsg(data.error || "ไม่พบขยะในภาพ หรือความมั่นใจต่ำเกินไป");
+        }
         if (data.image_base64) {
           setDisplayImage(data.image_base64);
         }
@@ -210,6 +223,8 @@ export default function ResultScreen({ route, navigation, user }) {
 
       const { error } = await insertUserResults(inserts);
       if (error) throw error;
+      
+
       
       const newData = await fetchAllUserResults(user.id);
       const newStreak = await loadStreak(user.id);

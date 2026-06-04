@@ -182,12 +182,13 @@ export default function CategoryHistoryScreen({ navigation, route }) {
     return (
       <TouchableOpacity
         style={styles.categoryItem}
-        onPress={() =>
-          navigation.navigate("ScanHistory", {
+        onPress={() => {
+          const rootNav = navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+          rootNav.navigate("ScanHistory", {
             user,
             filterCategory: item.material_name,
-          })
-        }
+          });
+        }}
       >
         <View style={styles.categoryIcon}>
           {getCategoryIcon(item.material_name)}

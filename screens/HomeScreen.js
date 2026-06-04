@@ -146,7 +146,7 @@ const getCategoryIcon = (categoryName) => {
 };
 
 
-export default function HomeScreen({ user, navigation }) {
+export default function HomeScreen({ user, navigation, parentNavigation }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -416,12 +416,13 @@ export default function HomeScreen({ user, navigation }) {
             <TouchableOpacity
               key={cat.id}
               style={styles.catItem}
-              onPress={() =>
-                navigation.navigate("ScanHistory", {
+              onPress={() => {
+                const rootNav = parentNavigation || navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+                rootNav.navigate("ScanHistory", {
                   user,
                   filterCategory: cat.name,
-                })
-              }
+                });
+              }}
             >
               <View style={styles.catIconBox}>
                 {getCategoryIcon(cat.name)}
@@ -438,7 +439,10 @@ export default function HomeScreen({ user, navigation }) {
           <Text style={styles.sectionTitle}>Recent Scans</Text>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate("ScanHistory", { user })}
+            onPress={() => {
+              const rootNav = parentNavigation || navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+              rootNav.navigate("ScanHistory", { user });
+            }}
           >
             <Text style={styles.seeMoreText}>See History</Text>
           </TouchableOpacity>

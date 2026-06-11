@@ -33,7 +33,7 @@ const formatScanDate = (dateString) => {
 // ✅ ฟังก์ชันเลือกไอคอน (คงเดิมเพื่อให้ UI ลิงก์กันทุกหน้า)
 const getCategoryIcon = (categoryName) => {
   const iconSize = 26;
-  const iconColor = "#1A1A1A";
+  const iconColor = "#004743";
 
   switch (categoryName) {
     case "PETE":
@@ -158,7 +158,7 @@ export default function ScanHistoryScreen({ navigation, route }) {
       </View>
 
       <View style={styles.checkCircle}>
-        <Ionicons name="checkmark" size={14} color="#fff" />
+        <Ionicons name="checkmark" size={14} color="#fafafa" />
       </View>
     </View>
   );
@@ -168,7 +168,7 @@ export default function ScanHistoryScreen({ navigation, route }) {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="arrow-back" size={24} color="#004743" />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>
@@ -192,7 +192,7 @@ export default function ScanHistoryScreen({ navigation, route }) {
           <Ionicons
             name={sortOrder === "desc" ? "arrow-down" : "arrow-up"}
             size={16}
-            color="#000"
+            color="#004743"
           />
         </TouchableOpacity>
       </View>
@@ -200,7 +200,7 @@ export default function ScanHistoryScreen({ navigation, route }) {
       {/* LIST */}
       {loading ? (
         <View style={styles.centerLoading}>
-          <ActivityIndicator size="large" color="#1A1A1A" />
+          <ActivityIndicator size="large" color="#004743" />
         </View>
       ) : (
         <FlatList
@@ -255,13 +255,13 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#004743",
     marginBottom: 12,
   },
   scanIconBox: {
     width: 55,
     height: 55,
-    backgroundColor: "#F0F0F0",
+    backgroundColor: "#fafafa",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: "#004743",
     justifyContent: "center",
     alignItems: "center",
   },

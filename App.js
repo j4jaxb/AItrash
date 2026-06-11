@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -15,6 +15,13 @@ import CategoryHistoryScreen from './screens/CategoryHistoryScreen';
 import ScanHistoryScreen from './screens/ScanHistoryScreen';
 import ResultScreen from './screens/ResultScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
+import RewardScreen from './screens/RewardScreen';
+import PrivacySettingsScreen from './screens/PrivacySettingsScreen';
+import AboutAppScreen from './screens/AboutAppScreen';
+import HelpSupportScreen from './screens/HelpSupportScreen';
+import GameHubScreen from './screens/GameHubScreen';
+import TrashCatcherGameScreen from './screens/TrashCatcherGameScreen';
+import MemoryGameScreen from './screens/MemoryGameScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -30,7 +37,7 @@ function MainTabs({ user, setUser }) {
           borderTopColor: '#eee',
           paddingBottom: 10 
         },
-        tabBarActiveTintColor: '#004743', // สีเขียวตามรูปต้นฉบับ
+        tabBarActiveTintColor: '#004743',
         tabBarInactiveTintColor: '#000',
         tabBarLabelStyle: { fontSize: 11, marginBottom: 5 },
         tabBarIcon: ({ color, size, focused }) => {
@@ -43,7 +50,7 @@ function MainTabs({ user, setUser }) {
                 backgroundColor: '#004743',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 35, // ดันปุ่มขึ้นข้างบน
+                marginBottom: 35,
                 elevation: 5,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
@@ -66,7 +73,7 @@ function MainTabs({ user, setUser }) {
       })}
     >
       <Tab.Screen name="Home" options={{ tabBarLabel: 'Home' }}>
-        {(props) => <HomeScreen {...props} user={user} />}
+        {(props) => <HomeScreen {...props} user={user} parentNavigation={props.navigation} />}
       </Tab.Screen>
       <Tab.Screen name="Stat" options={{ tabBarLabel: 'Stats' }}>
         {(props) => <StatScreen {...props} user={user} />}
@@ -100,11 +107,26 @@ export default function App() {
         <Stack.Screen name="MainTabs">
           {(props) => <MainTabs {...props} user={user} setUser={setUser} />}
         </Stack.Screen>
-        <Stack.Screen name="Result" component={ResultScreen} />
+        <Stack.Screen name="Result">
+          {(props) => <ResultScreen {...props} user={user} />}
+        </Stack.Screen>
         <Stack.Screen name="CategoryHistory" component={CategoryHistoryScreen} />
         <Stack.Screen name="ScanHistory" component={ScanHistoryScreen} />
         <Stack.Screen name="EditProfile">
           {(props) => <EditProfileScreen {...props} user={user} setUser={setUser} />}
+        </Stack.Screen>
+        <Stack.Screen name="Rewards" component={RewardScreen} />
+        <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+        <Stack.Screen name="AboutApp" component={AboutAppScreen} />
+        <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+        <Stack.Screen name="GameHub">
+          {(props) => <GameHubScreen {...props} user={user} />}
+        </Stack.Screen>
+        <Stack.Screen name="TrashCatcherGame">
+          {(props) => <TrashCatcherGameScreen {...props} user={user} />}
+        </Stack.Screen>
+        <Stack.Screen name="MemoryGame">
+          {(props) => <MemoryGameScreen {...props} user={user} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

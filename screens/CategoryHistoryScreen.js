@@ -65,14 +65,6 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
-    case "OTHER":
-      return (
-        <MaterialCommunityIcons
-          name="recycle-variant"
-          size={iconSize}
-          color={iconColor}
-        />
-      );
     case "Glass":
       return (
         <MaterialCommunityIcons
@@ -83,7 +75,7 @@ const getCategoryIcon = (categoryName) => {
       );
     case "Metal":
       return (
-        <MaterialCommunityIcons name="can" size={iconSize} color={iconColor} />
+        <MaterialCommunityIcons name="silverware-fork-knife" size={iconSize} color={iconColor} />
       );
     case "Paper":
       return (
@@ -125,7 +117,6 @@ export default function CategoryHistoryScreen({ navigation, route }) {
     { id: "ldpe", name: "LDPE", sub: "Resin Code 4" },
     { id: "pp", name: "PP", sub: "Resin Code 5" },
     { id: "ps", name: "PS", sub: "Resin Code 6" },
-    { id: "other", name: "OTHER", sub: "Resin Code 7" },
     { id: "glass", name: "Glass", sub: "Recyclable" },
     { id: "metal", name: "Metal", sub: "Recyclable" },
     { id: "paper", name: "Paper", sub: "Clean & Dry" },
@@ -151,8 +142,7 @@ export default function CategoryHistoryScreen({ navigation, route }) {
           )
         `,
         )
-        .eq("user_id", user.id)
-        .not("material", "is", null);
+        .eq("user_id", user.id);
 
       if (error) {
         console.log("Load categories error", error);
@@ -160,10 +150,11 @@ export default function CategoryHistoryScreen({ navigation, route }) {
       } else {
         const uniqueCategories = [];
         const seen = new Set();
-        data.forEach((item) => {
-          if (item.material && !seen.has(item.material.material_name)) {
-            seen.add(item.material.material_name);
-            uniqueCategories.push(item.material);
+        (data || []).forEach((item) => {
+          const activeMaterial = item.material;
+          if (activeMaterial && !seen.has(activeMaterial.material_name)) {
+            seen.add(activeMaterial.material_name);
+            uniqueCategories.push(activeMaterial);
           }
         });
 
@@ -191,12 +182,13 @@ export default function CategoryHistoryScreen({ navigation, route }) {
     return (
       <TouchableOpacity
         style={styles.categoryItem}
-        onPress={() =>
-          navigation.navigate("ScanHistory", {
+        onPress={() => {
+          const rootNav = navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+          rootNav.navigate("ScanHistory", {
             user,
             filterCategory: item.material_name,
-          })
-        }
+          });
+        }}
       >
         <View style={styles.categoryIcon}>
           {getCategoryIcon(item.material_name)}
@@ -219,7 +211,7 @@ export default function CategoryHistoryScreen({ navigation, route }) {
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Recyclable Categories</Text>
+        <Text style={styles.headerTitle}>หมวดหมู่รีไซเคิล</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -248,7 +240,7 @@ export default function CategoryHistoryScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF" },
+  container: { flex: 1, backgroundColor: "#F6F8F7" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -257,6 +249,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
+    backgroundColor: "#FFF",
   },
   backBtn: { padding: 5 },
   headerTitle: {

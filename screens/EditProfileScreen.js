@@ -218,7 +218,10 @@ export default function EditProfileScreen({ route, navigation, user, setUser }) 
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#222" style={{ marginTop: 20 }} />
+          <View style={{ alignItems: 'center', marginTop: 20 }}>
+            <ActivityIndicator size="large" color="#059669" />
+            <Text style={{ marginTop: 10, color: '#059669', fontSize: 16, fontWeight: '500' }}>กำลังอัปเดตโปรไฟล์...</Text>
+          </View>
         ) : (
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>บันทึก</Text>

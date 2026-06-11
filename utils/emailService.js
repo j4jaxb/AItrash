@@ -1,3 +1,6 @@
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
 /**
  * Email Service - เรียก Backend API เพื่อส่งอีเมล
  * 
@@ -7,9 +10,42 @@
  * Backend API ดูที่ไฟล์: ../backend/emailServer.js
  */
 
+const CUSTOM_API_HOST = ''; // ถ้าใช้มือถือจริง ให้กรอก IP ของพีซี เช่น 'http://192.168.43.123:5001'
+
+const getApiBaseUrl = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+
+  if (CUSTOM_API_HOST) {
+    return CUSTOM_API_HOST;
+  }
+
+  const possibleHosts = [
+    Constants.manifest?.debuggerHost,
+    Constants.manifest?.hostUri,
+    Constants.manifest?.packagerOpts?.hostUri,
+    Constants.manifest?.packagerOpts?.devClient?.debuggerHost,
+    Constants.manifest?.packagerOpts?.devClient?.hostUri,
+    Constants.expoConfig?.hostUri,
+    Constants.expoConfig?.extra?.hostUri
+  ].filter(Boolean);
+
+  if (possibleHosts.length > 0) {
+    console.log('📌 Expo host values detected:', possibleHosts);
+    const host = possibleHosts[0].split(':')[0];
+    return `http://${host}:5001`;
+  }
+
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:5001';
+  }
+
+  return 'http://localhost:5001';
+};
+
 // Backend API URL (แก้ไขให้ตรงกับ server จริง)
-// สำหรับ development: ใช้ IP address แทน localhost
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://172.20.10.2:5001';
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * ส่งรหัสยืนยันไปที่อีเมล (เรียก Backend API)

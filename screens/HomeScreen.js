@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,11 @@ import {
   BalooTammudu2_700Bold,
 } from "@expo-google-fonts/baloo-tammudu-2";
 import { supabase } from "../supabase";
-import { loadStreak } from "../utils/streakService";
+import { loadStreak, loadMaxStreak } from "../utils/streakService";
+import { calculateAchievements, calculateTotalPoints, calculateCO2 } from "../utils/achievementService";
+import { fetchUserResults } from "../utils/resultService";
+import { fetchGameHistory } from "../utils/gameService";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -95,14 +99,7 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
-    case "OTHER":
-      return (
-        <MaterialCommunityIcons
-          name="recycle-variant"
-          size={iconSize}
-          color={iconColor}
-        />
-      );
+    case "glass":
     case "Glass":
       return (
         <MaterialCommunityIcons
@@ -111,14 +108,16 @@ const getCategoryIcon = (categoryName) => {
           color={iconColor}
         />
       );
+    case "metal":
     case "Metal":
       return (
         <MaterialCommunityIcons
-          name="can"
+          name="silverware-fork-knife"
           size={iconSize}
           color={iconColor}
         />
       );
+    case "paper":
     case "Paper":
       return (
         <Ionicons
@@ -146,7 +145,8 @@ const getCategoryIcon = (categoryName) => {
   }
 };
 
-export default function HomeScreen({ user, navigation }) {
+
+export default function HomeScreen({ user, navigation, parentNavigation }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -154,7 +154,9 @@ export default function HomeScreen({ user, navigation }) {
     accuracy: 0,
     categories: 0,
     streak: 0,
+    maxStreak: 0,
     xp: 0,
+    co2Saved: 0,
   });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -172,50 +174,85 @@ export default function HomeScreen({ user, navigation }) {
     { id: "ps", name: "PS", sub: "Resin Code 6" },
   ];
 
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user) {
+        loadData();
+      }
+    }, [user])
+  );
+
   const loadData = async () => {
     if (!user?.id) return;
 
     setLoading(true);
 
     try {
-      const { data: recentData } = await supabase
-        .from("result")
-        .select(`id, scan_date, material (material_name, recycle)`)
-        .eq("user_id", user.id)
-        .order("scan_date", { ascending: false })
-        .limit(3);
+      // Fetch goal data
+      let goalTarget = null;
+      let goalStartDate = null;
+      let goalXp = 50;
+      try {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("goal_target, goal_start_date, goal_xp")
+          .eq("id", user.id)
+          .single();
+        if (userData) {
+          goalTarget = userData.goal_target;
+          goalStartDate = userData.goal_start_date;
+          if (userData.goal_xp) goalXp = userData.goal_xp;
+        }
+      } catch (e) {
+        // Ignore if columns don't exist
+      }
+
+      const recentData = await fetchUserResults({
+        userId: user.id,
+        orderBy: "scan_date",
+        ascending: false,
+        limit: 3,
+      });
 
       setResults(recentData || []);
 
-      const { count: itemsCount } = await supabase
-        .from("result")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-
-      const { data: categoriesData } = await supabase
-        .from("result")
-        .select("material!inner(material_name)")
-        .eq("user_id", user.id);
+      const allData = await fetchUserResults({
+        userId: user.id,
+        orderBy: "scan_date",
+        ascending: false,
+      });
 
       let categoriesCount = 0;
-
-      if (categoriesData) {
+      if (allData) {
         const unique = new Set(
-          categoriesData
+          allData
             .map((item) => item.material?.material_name)
             .filter(Boolean)
         );
-
         categoriesCount = unique.size;
       }
 
       const streak = await loadStreak(user.id);
+      const maxStreak = await loadMaxStreak(user.id);
+
+      let xpPoints = 0;
+      let totalCO2 = 0;
+      if (allData) {
+        const gameHistory = await fetchGameHistory(user.id);
+        const calculatedAchievements = calculateAchievements(allData, streak, goalTarget, goalStartDate, goalXp);
+        xpPoints = calculateTotalPoints(allData, calculatedAchievements, gameHistory);
+        // Calculate CO2 saved based on scanned materials
+        totalCO2 = allData.reduce((sum, item) => sum + calculateCO2(item.material?.material_name), 0);
+      }
 
       setStats((prev) => ({
         ...prev,
-        itemsScanned: itemsCount || 0,
+        itemsScanned: allData ? allData.length : 0,
         categories: categoriesCount,
         streak: streak,
+        maxStreak: maxStreak,
+        xp: xpPoints,
+        co2Saved: allData ? totalCO2.toFixed(2) : 0,
       }));
     } catch (err) {
       console.log("Error loading data:", err);
@@ -264,17 +301,34 @@ export default function HomeScreen({ user, navigation }) {
             </View>
 
             <View style={{ marginLeft: 10 }}>
-              <Text style={styles.streakLabel}>SORTING STREAK</Text>
-              <Text style={styles.streakValue}>
-                {stats.streak > 0 ? `🔥 ${stats.streak} Days` : "No streak yet"}
-              </Text>
+              {stats.maxStreak > stats.streak ? (
+                <>
+                  <Text style={styles.streakLabel}>MAX STREAK</Text>
+                  <Text style={styles.streakValue}>🏆 {stats.maxStreak} Days</Text>
+                  {stats.streak > 0 && (
+                    <Text style={{ fontSize: 11, color: "#666", marginTop: 2, fontWeight: "bold" }}>
+                      🔥 Current: {stats.streak} Days
+                    </Text>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Text style={styles.streakLabel}>SORTING STREAK</Text>
+                  <Text style={styles.streakValue}>
+                    {stats.streak > 0 ? `🔥 ${stats.streak} Days` : "No streak yet"}
+                  </Text>
+                </>
+              )}
             </View>
           </View>
 
-          <View style={styles.xpBadge}>
+          <TouchableOpacity 
+            style={styles.xpBadge}
+            onPress={() => navigation.navigate("Rewards", { user })}
+          >
             <MaterialCommunityIcons name="leaf" size={14} color="#FFF" />
             <Text style={styles.xpText}>{`${stats.xp} XP`}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <Text
@@ -295,8 +349,8 @@ export default function HomeScreen({ user, navigation }) {
           </View>
 
           <View style={styles.statCard}>
-            <Text style={styles.statNum}>{`${stats.accuracy}%`}</Text>
-            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statNum}>{`${stats.co2Saved}kg`}</Text>
+            <Text style={styles.statLabel}>CO₂ Saved</Text>
           </View>
 
           <View style={styles.statCard}>
@@ -324,6 +378,28 @@ export default function HomeScreen({ user, navigation }) {
           <Text style={styles.mainBtnTextDark}>Upload from Gallery</Text>
         </TouchableOpacity>
 
+        {/* PLAY GAMES CARD */}
+        <TouchableOpacity
+          style={styles.gameCard}
+          onPress={() => navigation.navigate("GameHub", { user })}
+        >
+          <View style={styles.gameCardIconBox}>
+            <MaterialCommunityIcons name="gamepad-variant" size={24} color="#FFF" />
+          </View>
+          <View style={styles.gameCardContent}>
+            <View style={styles.gameCardHeader}>
+              <Text style={styles.gameCardTitle}>มินิเกมสะสมแต้ม</Text>
+              <View style={styles.gameXpBadge}>
+                <Text style={styles.gameXpBadgeText}>+10 XP Daily</Text>
+              </View>
+            </View>
+            <Text style={styles.gameCardDesc}>
+              เล่นเกมฝนขยะ & จับคู่การ์ดความจำเพื่อรับ XP ประจำวัน และโบนัสต่อเนื่อง 7 วัน!
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#1E6C5B" style={{ marginLeft: 5 }} />
+        </TouchableOpacity>
+
         {/* CATEGORY */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recyclable Categories</Text>
@@ -340,12 +416,13 @@ export default function HomeScreen({ user, navigation }) {
             <TouchableOpacity
               key={cat.id}
               style={styles.catItem}
-              onPress={() =>
-                navigation.navigate("ScanHistory", {
+              onPress={() => {
+                const rootNav = parentNavigation || navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+                rootNav.navigate("ScanHistory", {
                   user,
                   filterCategory: cat.name,
-                })
-              }
+                });
+              }}
             >
               <View style={styles.catIconBox}>
                 {getCategoryIcon(cat.name)}
@@ -362,7 +439,10 @@ export default function HomeScreen({ user, navigation }) {
           <Text style={styles.sectionTitle}>Recent Scans</Text>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate("ScanHistory", { user })}
+            onPress={() => {
+              const rootNav = parentNavigation || navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
+              rootNav.navigate("ScanHistory", { user });
+            }}
           >
             <Text style={styles.seeMoreText}>See History</Text>
           </TouchableOpacity>
@@ -585,5 +665,54 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E6C5B",
     justifyContent: "center",
     alignItems: "center",
+  },
+  gameCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EAF4F0",
+    padding: 16,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    borderColor: "#B2DFDB",
+    marginBottom: 25,
+  },
+  gameCardIconBox: {
+    width: 48,
+    height: 48,
+    backgroundColor: "#1E6C5B",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  gameCardContent: {
+    flex: 1,
+  },
+  gameCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  gameCardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#0F3D34",
+  },
+  gameCardDesc: {
+    fontSize: 12,
+    color: "#4E605A",
+    lineHeight: 16,
+  },
+  gameXpBadge: {
+    backgroundColor: "#FFD700",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  gameXpBadgeText: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#856600",
   },
 });

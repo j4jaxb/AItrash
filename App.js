@@ -22,6 +22,8 @@ import HelpSupportScreen from './screens/HelpSupportScreen';
 import GameHubScreen from './screens/GameHubScreen';
 import TrashCatcherGameScreen from './screens/TrashCatcherGameScreen';
 import MemoryGameScreen from './screens/MemoryGameScreen';
+import PlasticGuideScreen from './screens/PlasticGuideScreen';
+import PrivacyConsentScreen from './screens/PrivacyConsentScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -116,9 +118,13 @@ export default function App() {
           {(props) => <EditProfileScreen {...props} user={user} setUser={setUser} />}
         </Stack.Screen>
         <Stack.Screen name="Rewards" component={RewardScreen} />
-        <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+        <Stack.Screen name="PrivacySettings">
+          {(props) => <PrivacySettingsScreen {...props} user={user} setUser={setUser} />}
+        </Stack.Screen>
         <Stack.Screen name="AboutApp" component={AboutAppScreen} />
-        <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+        <Stack.Screen name="HelpSupport">
+          {(props) => <HelpSupportScreen {...props} user={user} />}
+        </Stack.Screen>
         <Stack.Screen name="GameHub">
           {(props) => <GameHubScreen {...props} user={user} />}
         </Stack.Screen>
@@ -127,6 +133,12 @@ export default function App() {
         </Stack.Screen>
         <Stack.Screen name="MemoryGame">
           {(props) => <MemoryGameScreen {...props} user={user} />}
+        </Stack.Screen>
+        <Stack.Screen name="PlasticGuide">
+          {(props) => <PlasticGuideScreen {...props} user={user} />}
+        </Stack.Screen>
+        <Stack.Screen name="PrivacyConsent">
+          {(props) => <PrivacyConsentScreen {...props} user={user} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

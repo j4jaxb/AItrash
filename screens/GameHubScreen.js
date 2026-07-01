@@ -111,6 +111,19 @@ export default function GameHubScreen({ navigation, user }) {
 
         <Text style={styles.sectionTitle}>เลือกมินิเกมของคุณ</Text>
 
+        <TouchableOpacity style={styles.guideCard} onPress={() => navigation.navigate("PlasticGuide")} activeOpacity={0.8}>
+          <View style={styles.guideIconWrapper}>
+            <MaterialCommunityIcons name="recycle" size={28} color="#1E6C5B" />
+          </View>
+          <View style={styles.guideContent}>
+            <Text style={styles.guideTitle}>แนะนำสัญลักษณ์และรหัสพลาสติก</Text>
+            <Text style={styles.guideDesc}>
+              ทำความรู้จักประเภทพลาสติก เพื่อเล่นเกมสนุกขึ้น!
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#0F3D34" />
+        </TouchableOpacity>
+
         {/* GAME 1 CARD */}
         <View style={styles.gameCard}>
           <View style={styles.gameIconWrapper}>
@@ -138,7 +151,7 @@ export default function GameHubScreen({ navigation, user }) {
             </View>
             <View style={styles.statusRow}>
               <View style={[styles.weekBadge, catcherWeekComplete ? styles.weekBadgeDone : styles.weekBadgePending]}>
-                <Text style={[styles.weekBadgeText, catcherWeekComplete && styles.weekBadgeTextDone]}>{catcherWeekComplete ? 'ครบสัปดาห์แล้ว' : 'ครบสัปดาห์ยังไม่ครบ'}</Text>
+                <Text style={[styles.weekBadgeText, catcherWeekComplete && styles.weekBadgeTextDone]}>{catcherWeekComplete ? 'ครบสัปดาห์แล้ว' : 'ยังไม่ครบสัปดาห์'}</Text>
               </View>
               <View style={[styles.statPill, catcherStats.completedToday ? styles.pillDone : styles.pillPlay]}> 
                 <Ionicons name={catcherStats.completedToday ? "checkmark-circle" : "ellipse-outline"} size={14} color={catcherStats.completedToday ? "#059669" : "#666"} />
@@ -187,7 +200,7 @@ export default function GameHubScreen({ navigation, user }) {
             </View>
             <View style={styles.statusRow}>
               <View style={[styles.weekBadge, memoryWeekComplete ? styles.weekBadgeDone : styles.weekBadgePending]}>
-                <Text style={[styles.weekBadgeText, memoryWeekComplete && styles.weekBadgeTextDone]}>{memoryWeekComplete ? 'ครบสัปดาห์แล้ว' : 'ครบสัปดาห์ยังไม่ครบ'}</Text>
+                <Text style={[styles.weekBadgeText, memoryWeekComplete && styles.weekBadgeTextDone]}>{memoryWeekComplete ? 'ครบสัปดาห์แล้ว' : 'ยังไม่ครบสัปดาห์'}</Text>
               </View>
               <View style={[styles.statPill, memoryStats.completedToday ? styles.pillDone : styles.pillPlay]}> 
                 <Ionicons name={memoryStats.completedToday ? "checkmark-circle" : "ellipse-outline"} size={14} color={memoryStats.completedToday ? "#059669" : "#666"} />
@@ -208,6 +221,8 @@ export default function GameHubScreen({ navigation, user }) {
             </TouchableOpacity>
           </View>
         </View>
+
+        
       </ScrollView>
     </SafeAreaView>
   );
@@ -294,6 +309,37 @@ const styles = StyleSheet.create({
   },
   playBtnDisabled: { backgroundColor: "#789F97" },
   playBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 14, marginRight: 8 },
+  guideCard: {
+    flexDirection: "row",
+    backgroundColor: "#FFF",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#E4ECE8",
+  },
+  guideIconWrapper: {
+    width: 48,
+    height: 48,
+    backgroundColor: "#EAF4F0",
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  guideContent: { flex: 1 },
+  guideTitle: { fontSize: 15, fontWeight: "bold", color: "#0F3D34", marginBottom: 4 },
+  guideDesc: { fontSize: 12, color: "#666", lineHeight: 18, marginBottom: 10 },
+  guideBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#1E6C5B",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  guideBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 12, marginRight: 6 },
   weekRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
   dayCol: { alignItems: "center", width: 28 },
   dayDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: "#E6EEF5", borderWidth: 1, borderColor: "#D1E7F0" },

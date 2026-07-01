@@ -29,23 +29,6 @@ export default function AboutAppScreen({ navigation }) {
           </Text>
         </View>
 
-        <View style={styles.sectionCard}>
-          <TouchableOpacity style={styles.linkRow}>
-            <Text style={styles.linkText}>Terms of Service</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity style={styles.linkRow}>
-            <Text style={styles.linkText}>Privacy Policy</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity style={styles.linkRow}>
-            <Text style={styles.linkText}>Open Source Licenses</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-        </View>
-
         <Text style={styles.copyright}>© 2026 AItrash Team. All rights reserved.</Text>
       </ScrollView>
     </SafeAreaView>

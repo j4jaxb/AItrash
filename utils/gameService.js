@@ -5,6 +5,13 @@ const ASYNC_STORAGE_KEY = "@aitrash:game_plays";
 const isWebStorageAvailable = typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 let hasAsyncStorageFailure = false;
 
+const getStorageKey = (userId) => {
+  if (userId) {
+    return `${ASYNC_STORAGE_KEY}:${userId}`;
+  }
+  return ASYNC_STORAGE_KEY;
+};
+
 const getStorageItem = async (key) => {
   if (!hasAsyncStorageFailure && AsyncStorage && typeof AsyncStorage.getItem === "function") {
     try {
@@ -70,9 +77,9 @@ const isConsecutiveDays = (dateStr1, dateStr2) => {
 /**
  * ดึงประวัติการเล่นเกมทั้งหมดจาก AsyncStorage
  */
-export const getLocalGameHistory = async () => {
+export const getLocalGameHistory = async (userId) => {
   try {
-    const data = await getStorageItem(ASYNC_STORAGE_KEY);
+    const data = await getStorageItem(getStorageKey(userId));
     return data ? JSON.parse(data) : [];
   } catch (err) {
     console.log("Error loading local game history:", err);
@@ -107,7 +114,7 @@ export const getCloudGameHistory = async (userId) => {
  * โหลดประวัติการเล่นเกมแบบ Sync ระหว่าง Cloud และ Local
  */
 export const fetchGameHistory = async (userId) => {
-  const localData = await getLocalGameHistory();
+  const localData = await getLocalGameHistory(userId);
   if (!userId) return localData;
 
   const cloudData = await getCloudGameHistory(userId);
@@ -134,7 +141,7 @@ export const fetchGameHistory = async (userId) => {
 
   // บันทึกกลับลง AsyncStorage หรือ web localStorage เพื่ออัปเดตข้อมูลให้ตรงกัน
   try {
-    await setStorageItem(ASYNC_STORAGE_KEY, JSON.stringify(mergedList));
+    await setStorageItem(getStorageKey(userId), JSON.stringify(mergedList));
   } catch (e) {
     console.log("Failed to cache synced game history:", e);
   }
@@ -154,7 +161,7 @@ export const recordGamePlay = async (userId, gameType) => {
   };
 
   // โหลดและตรวจสอบประวัติปัจจุบัน
-  const history = await getLocalGameHistory();
+  const history = await getLocalGameHistory(userId);
   const alreadyPlayedToday = history.some(
     item => item.played_date === todayStr && item.game_type === gameType
   );
@@ -166,7 +173,7 @@ export const recordGamePlay = async (userId, gameType) => {
   const updatedHistory = [...history, record];
   
   try {
-    await setStorageItem(ASYNC_STORAGE_KEY, JSON.stringify(updatedHistory));
+    await setStorageItem(getStorageKey(userId), JSON.stringify(updatedHistory));
   } catch (e) {
     console.log("Error saving game record locally:", e);
   }

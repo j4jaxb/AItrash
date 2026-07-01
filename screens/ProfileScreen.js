@@ -282,7 +282,7 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
           {/* ปุ่มที่เพิ่มมาให้เหมือนในรูป */}
           <TouchableOpacity 
             style={styles.supportBtn}
-            onPress={() => navigation.navigate("HelpSupport")}
+            onPress={() => navigation.navigate("HelpSupport", { user })}
           >
             <Ionicons name="help-circle-outline" size={24} color="#004743" />
             <Text style={[styles.supportText, { color: "#004743" }]}>Help & Support</Text>

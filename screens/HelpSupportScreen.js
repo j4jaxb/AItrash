@@ -1,27 +1,53 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput, Alert } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { supabase } from "../supabase";
 
-export default function HelpSupportScreen({ navigation }) {
+export default function HelpSupportScreen({ navigation, route, user: loggedInUser }) {
   const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const activeUser = route?.params?.user ?? loggedInUser;
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!message.trim()) {
-      Alert.alert("Error", "Please enter your message or question.");
+      Alert.alert("ข้อผิดพลาด", "กรุณากรอกข้อความหรือคำถามของคุณ");
       return;
     }
-    Alert.alert("Success", "Your message has been sent to our support team. We will get back to you shortly.", [
-      { text: "OK", onPress: () => {
-        setMessage("");
-        navigation.goBack();
-      }}
-    ]);
+
+    try {
+      setSending(true);
+
+      // Insert message into database
+      const { error } = await supabase.from("support_messages").insert([
+        {
+          user_id: activeUser?.id ?? null,
+          email: activeUser?.email ?? null,
+          message: message.trim(),
+          created_at: new Date().toISOString(),
+          status: "ยังไม่ตอบกลับ",
+        },
+      ]);
+
+      if (error) throw error;
+
+      Alert.alert("สำเร็จ", "ข้อความของคุณได้ถูกส่งไปยังทีมสนับสนุนของเรา เราจะติดต่อกลับคุณทางอีเมล", [
+        { text: "ตกลง", onPress: () => {
+          setMessage("");
+          navigation.goBack();
+        }}
+      ]);
+    } catch (error) {
+      console.log("Send support message error:", error);
+      Alert.alert("ข้อผิดพลาด", error?.message || "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่");
+    } finally {
+      setSending(false);
+    }
   };
 
   const faqList = [
-    { q: "How does the AI scanning work?", a: "Our AI model analyzes your camera input to detect the physical properties of the item, matching it against our database of recyclable materials." },
-    { q: "Why did my scan fail?", a: "Ensure the item is well-lit, clearly visible, and the camera is steady. Sometimes items that are heavily crumpled or dirty might be harder for the AI to recognize." },
-    { q: "How do I redeem my XP points?", a: "Navigate to the Rewards screen by tapping your XP on the Profile or Stats page. There you can exchange XP for available discounts and items." },
+    { q: "การสแกน AI ทำงานอย่างไร?", a: "โมเดล AI ของเราจะวิเคราะห์อินพุตจากกล้องเพื่อตรวจจับคุณสมบัติทางกายภาพของสิ่งของ และเปรียบเทียบกับฐานข้อมูลวัสดุที่นำมาใช้ใหม่ได้" },
+    { q: "ทำไมการสแกนของฉันจึงล้มเหลว?", a: "ตรวจสอบให้แน่ใจว่าสิ่งของมีแสงเพียงพอ มองเห็นได้ชัดเจน และกล้องอยู่นิ่ง บางครั้งสิ่งของที่มีรอยย่นหรือสกปรกอาจเป็นการยากต่อการจดจำของ AI" },
+    { q: "ฉันจะแลกคะแนน XP ได้อย่างไร?", a: "ไปที่หน้า Rewards โดยแตะที่ XP ของคุณบนหน้า Profile หรือ Stats คุณสามารถแลกคะแนน XP เพื่อรับส่วนลดและรายการต่างๆ ได้" },
   ];
 
   return (
@@ -36,12 +62,12 @@ export default function HelpSupportScreen({ navigation }) {
 
       <ScrollView style={styles.content}>
         <View style={styles.contactCard}>
-          <Text style={styles.sectionTitle}>Contact Us</Text>
-          <Text style={styles.contactDesc}>Having an issue or need help? Send us a message directly.</Text>
+          <Text style={styles.sectionTitle}>ติดต่อเรา</Text>
+          <Text style={styles.contactDesc}>มีปัญหาหรือต้องการความช่วยเหลือ? ส่งข้อความมาให้เราและเราจะติดต่อกลับคุณทางอีเมล</Text>
           
           <TextInput
             style={styles.textArea}
-            placeholder="Type your message here..."
+            placeholder="พิมพ์ข้อความของคุณที่นี่..."
             multiline
             numberOfLines={5}
             textAlignVertical="top"
@@ -49,13 +75,19 @@ export default function HelpSupportScreen({ navigation }) {
             onChangeText={setMessage}
           />
           
-          <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-            <Text style={styles.sendBtnText}>Send Message</Text>
-            <Ionicons name="send" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+          <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={sending}>
+            {sending ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <>
+                <Text style={styles.sendBtnText}>ส่งข้อความ</Text>
+                <Ionicons name="send" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.sectionTitle, { marginLeft: 5, marginTop: 20 }]}>Frequently Asked Questions</Text>
+        <Text style={[styles.sectionTitle, { marginLeft: 5, marginTop: 20 }]}>คำถามที่พบบ่อย</Text>
         
         {faqList.map((faq, index) => (
           <View key={index} style={styles.faqCard}>
@@ -65,8 +97,8 @@ export default function HelpSupportScreen({ navigation }) {
         ))}
 
         <View style={styles.directContactBox}>
-          <Text style={styles.directContactText}>Or email us directly at:</Text>
-          <Text style={styles.directContactEmail}>support@aitrashapp.com</Text>
+          <Text style={styles.directContactText}>หรือเขียนอีเมลถึงเราได้ที่:</Text>
+          <Text style={styles.directContactEmail}>jnp.trash@gmail.com</Text>
         </View>
         
         <View style={{ height: 40 }} />
@@ -85,7 +117,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#0F3D34", marginBottom: 10 },
   contactDesc: { fontSize: 14, color: "#666", marginBottom: 15 },
   textArea: { backgroundColor: "#F9F9F9", borderWidth: 1, borderColor: "#E4ECE8", borderRadius: 10, padding: 15, fontSize: 15, minHeight: 120 },
-  sendBtn: { backgroundColor: "#1E6C5B", flexDirection: "row", justifyContent: "center", alignItems: "center", padding: 15, borderRadius: 10, marginTop: 15 },
+  sendBtn: { backgroundColor: "#1E6C5B", flexDirection: "row", justifyContent: "center", alignItems: "center", padding: 15, borderRadius: 10, marginTop: 15, opacity: 0.9 },
   sendBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
   faqCard: { backgroundColor: "#FFF", padding: 15, borderRadius: 12, marginBottom: 10 },
   faqQ: { fontSize: 16, fontWeight: "bold", color: "#333", marginBottom: 8 },

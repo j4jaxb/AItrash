@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator
 } from 'react-native';
+import PrivacyConsentScreen from './PrivacyConsentScreen';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from '../supabase';
@@ -42,6 +43,7 @@ export default function LoginScreen({ onLogin }) {
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoadingSendCode, setIsLoadingSendCode] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showConsent, setShowConsent] = useState(false);
 
   const [tempEmail, setTempEmail] = useState('');
 
@@ -132,41 +134,40 @@ export default function LoginScreen({ onLogin }) {
     const result = await verifyCode(tempEmail, verificationCode);
 
     if (result.success) {
-
-      try {
-
-        const { error } = await supabase
-          .from('user')
-          .insert([
-            {
-              email: tempEmail,
-              first_name: firstName,
-              last_name: lastName,
-              password
-            }
-          ]);
-
-        if (error) {
-          Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างบัญชีได้');
-          return;
-        }
-
-        Alert.alert('สำเร็จ', 'ลงทะเบียนเรียบร้อยแล้ว');
-
-        resetForm();
-
-        setMode('login');
-
-      } catch (err) {
-
-        Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างบัญชีได้');
-      }
-
+      setShowConsent(true);
     } else {
-
       Alert.alert('เกิดข้อผิดพลาด', result.error);
     }
   };
+
+  const handleConsentComplete = async () => {
+    try {
+      const { error } = await supabase
+        .from('user')
+        .insert([
+          {
+            email: tempEmail,
+            first_name: firstName,
+            last_name: lastName,
+            password
+          }
+        ]);
+
+      if (error) {
+        Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างบัญชีได้');
+        return;
+      }
+
+      Alert.alert('สำเร็จ', 'ลงทะเบียนเรียบร้อยแล้ว');
+      resetForm();
+      setMode('login');
+      setShowConsent(false);
+    } catch (err) {
+      Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างบัญชีได้');
+      setShowConsent(false);
+    }
+  };
+
 
   const handleForgotPassword = async () => {
 
@@ -267,6 +268,18 @@ export default function LoginScreen({ onLogin }) {
       : mode === 'resetPassword'
       ? handleVerifyCodeForReset
       : handleSetNewPassword;
+
+  if (showConsent) {
+    return (
+      <PrivacyConsentScreen
+        onConsent={handleConsentComplete}
+        onCancel={() => {
+          setShowConsent(false);
+          setMode('login');
+        }}
+      />
+    );
+  }
 
   return (
 

@@ -120,7 +120,7 @@ export default function PlasticGuideScreen({ navigation }) {
           <View style={styles.bannerTextWrap}>
             <Text style={styles.bannerTitle}>เรียนรู้รหัสพลาสติก 1–7</Text>
             <Text style={styles.bannerDesc}>
-              กดแต่ละหมวดหมู่เพื่อดูสัญลักษณ์และตัวอย่างวัสดุที่พบได้บ่อย พร้อมคำอธิบายแบบสั้น ๆ
+              กดแต่ละหมวดหมู่เพื่อดูสัญลักษณ์และตัวอย่างวัสดุที่พบได้บ่อย พร้อมคำอธิบายแบบสั้นๆ
             </Text>
           </View>
         </View>

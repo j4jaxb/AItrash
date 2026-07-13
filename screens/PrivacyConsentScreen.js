@@ -43,23 +43,32 @@ export default function PrivacyConsentScreen({ navigation, onConsent, onCancel }
             <Ionicons name="document-text" size={24} color="#0F3D34" />
             <Text style={styles.sectionTitle}>Terms of Service</Text>
           </View>
+
           <View style={styles.consentCard}>
             <Text style={styles.contentText}>
-              ใช้งานแอปได้ตามข้อกำหนดของนโยบายนี้เท่านั้น{"\n"}
-              ห้ามใช้เพื่อกิจกรรมผิดกฎหมาย{"\n"}
-              AItrash มีสิทธิ์ปิดบัญชีหากฝ่าฝืนกฎ
+              ก่อนใช้งาน AItrash กรุณาอ่านและยอมรับข้อกำหนดการใช้งาน{"\n\n"}
+              • ใช้งานแอปตามวัตถุประสงค์ที่กำหนด{"\n"}
+              • ไม่ใช้แอปในกิจกรรมที่ผิดกฎหมายหรือส่งผลกระทบต่อระบบ{"\n"}
+              • AItrash ขอสงวนสิทธิ์ในการระงับบัญชี หากพบการละเมิดข้อกำหนด
             </Text>
+
             <TouchableOpacity
               style={styles.checkboxRow}
               onPress={() => setAgreedTerms(!agreedTerms)}
             >
               <View style={[styles.checkbox, agreedTerms && styles.checkboxChecked]}>
-                {agreedTerms && <Ionicons name="checkmark" size={16} color="white" />}
+                {agreedTerms && (
+                  <Ionicons name="checkmark" size={16} color="white" />
+                )}
               </View>
-              <Text style={styles.checkboxLabel}>ฉันยอมรับเงื่อนไขการให้บริการ</Text>
+
+              <Text style={styles.checkboxLabel}>
+                ฉันได้อ่านและยอมรับข้อกำหนดการใช้งาน
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
+
 
         {/* PRIVACY POLICY */}
         <View style={styles.section}>
@@ -67,45 +76,73 @@ export default function PrivacyConsentScreen({ navigation, onConsent, onCancel }
             <Ionicons name="shield" size={24} color="#0F3D34" />
             <Text style={styles.sectionTitle}>Privacy Policy</Text>
           </View>
+
           <View style={styles.consentCard}>
             <Text style={styles.contentText}>
-              ข้อมูลส่วนบุคคล ชื่อ อีเมล{"\n"}
-              ข้อมูลการใช้งาน ประวัติการแสกน คะแนน ประวัติเกม{"\n"}
-              รูปภาพสแกน เก็บไว้เพื่อปรับปรุง AI{"\n"}
-              ไม่มีการขายข้อมูลให้บุคคลที่สาม
+              AItrash ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้งาน{"\n\n"}
+
+              ข้อมูลที่อาจมีการเก็บรวบรวม ได้แก่{"\n"}
+              • ข้อมูลบัญชี เช่น ชื่อ และอีเมล{"\n"}
+              • ข้อมูลการใช้งาน เช่น ประวัติการสแกน คะแนน และสถิติการเล่นเกม{"\n"}
+              • รูปภาพหรือข้อมูลที่ใช้สำหรับการวิเคราะห์ด้วย AI{"\n\n"}
+
+              ข้อมูลเหล่านี้ใช้เพื่อปรับปรุงประสิทธิภาพของระบบ{"\n"}
+              พัฒนาฟีเจอร์ และเพิ่มประสบการณ์การใช้งานให้ดีขึ้น{"\n\n"}
+
+              AItrash ไม่มีการจำหน่ายข้อมูลส่วนบุคคลให้กับบุคคลภายนอก
             </Text>
+
             <TouchableOpacity
               style={styles.checkboxRow}
               onPress={() => setAgreedPrivacy(!agreedPrivacy)}
             >
               <View style={[styles.checkbox, agreedPrivacy && styles.checkboxChecked]}>
-                {agreedPrivacy && <Ionicons name="checkmark" size={16} color="white" />}
+                {agreedPrivacy && (
+                  <Ionicons name="checkmark" size={16} color="white" />
+                )}
               </View>
-              <Text style={styles.checkboxLabel}>ฉันยอมรับนโยบายความเป็นส่วนตัว</Text>
+
+              <Text style={styles.checkboxLabel}>
+                ฉันยอมรับนโยบายความเป็นส่วนตัวและการจัดการข้อมูล
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
+
 
         {/* DATA USAGE */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="database" size={24} color="#0F3D34" />
-            <Text style={styles.sectionTitle}>Data Collection & Usage</Text>
+            <Text style={styles.sectionTitle}>Data Usage</Text>
           </View>
+
           <View style={styles.consentCard}>
             <Text style={styles.contentText}>
-              เก็บข้อมูลการเล่นเกมและสถิติของคุณ{"\n"}
-              อาจใช้สำหรับการวิจัยและการจำแนกชนิด{"\n"}
-              สามารถลบข้อมูลได้ตลอดเวลาในการตั้งค่า
+              การอนุญาตให้ใช้ข้อมูลช่วยให้ AItrash สามารถพัฒนาแอป
+              และปรับปรุงระบบ AI ได้อย่างมีประสิทธิภาพมากขึ้น{"\n\n"}
+
+              ข้อมูลอาจถูกนำไปใช้เพื่อ{"\n"}
+              • วิเคราะห์และเพิ่มความแม่นยำของระบบ AI{"\n"}
+              • ปรับปรุงรูปแบบการใช้งานและประสบการณ์ของผู้ใช้{"\n"}
+              • จัดทำสถิติการใช้งานภายในระบบ{"\n\n"}
+
+              ผู้ใช้สามารถจัดการหรือลบข้อมูลของตนเองได้จากเมนูการตั้งค่า
             </Text>
+
             <TouchableOpacity
               style={styles.checkboxRow}
               onPress={() => setAgreedData(!agreedData)}
             >
               <View style={[styles.checkbox, agreedData && styles.checkboxChecked]}>
-                {agreedData && <Ionicons name="checkmark" size={16} color="white" />}
+                {agreedData && (
+                  <Ionicons name="checkmark" size={16} color="white" />
+                )}
               </View>
-              <Text style={styles.checkboxLabel}>ฉันอนุญาตให้เก็บและใช้ข้อมูล</Text>
+
+              <Text style={styles.checkboxLabel}>
+                ฉันอนุญาตให้ AItrash ใช้ข้อมูลเพื่อพัฒนาแอป
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

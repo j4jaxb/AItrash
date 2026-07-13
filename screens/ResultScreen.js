@@ -32,6 +32,7 @@ export default function ResultScreen({ route, navigation, user }) {
   const [predictions, setPredictions] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isDuplicate, setIsDuplicate] = useState(false);
   const [displayImage, setDisplayImage] = useState(image);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -111,6 +112,7 @@ export default function ResultScreen({ route, navigation, user }) {
       console.log("Server response predictions:", data.predictions);
       
       if (response.ok && data.predictions && data.predictions.length > 0) {
+        setIsDuplicate(false);
         setPredictions(data.predictions.map((pred) => ({
           ...pred,
           userConfirmedType: false,
@@ -123,8 +125,10 @@ export default function ResultScreen({ route, navigation, user }) {
         }
       } else {
         if (data.is_duplicate) {
+          setIsDuplicate(true);
           setErrorMsg(data.error || "ปฏิเสธแต้ม: ตรวจพบว่าเป็นขยะชิ้นเดิมที่คุณเพิ่งแสกน");
         } else {
+          setIsDuplicate(false);
           setErrorMsg(data.error || "ไม่พบขยะในภาพ หรือความมั่นใจต่ำเกินไป");
         }
         if (data.image_base64) {
@@ -133,6 +137,7 @@ export default function ResultScreen({ route, navigation, user }) {
       }
     } catch (error) {
       console.log("AI Error:", error);
+      setIsDuplicate(false);
       setErrorMsg("ไม่สามารถเชื่อมต่อกับ AI Server ได้");
     } finally {
       setLoading(false);
@@ -279,7 +284,7 @@ export default function ResultScreen({ route, navigation, user }) {
           ) : errorMsg ? (
             <View style={styles.resultCard}>
               <Ionicons name="warning" size={40} color="#ff3333" />
-              <Text style={[styles.materialName, { color: '#ff3333' }]}>ตรวจไม่พบ</Text>
+              <Text style={[styles.materialName, { color: '#ff3333' }]}>{isDuplicate ? 'ซ้ำกับที่คุณเคยแสกน' : 'ตรวจไม่พบ'}</Text>
               <Text style={styles.description}>{errorMsg}</Text>
               
               <TouchableOpacity

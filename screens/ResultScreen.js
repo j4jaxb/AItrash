@@ -16,6 +16,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { supabase } from "../supabase";
 import Constants from "expo-constants";
+import { API_CONFIG } from "../utils/config";
 import { loadStreak } from "../utils/streakService";
 import { calculateAchievements } from "../utils/achievementService";
 import { fetchAllUserResults, insertUserResults } from "../utils/resultService";
@@ -82,7 +83,9 @@ export default function ResultScreen({ route, navigation, user }) {
   const analyzeImage = async () => {
     try {
       let apiUrl = "http://10.0.2.2:5000/predict"; 
-      if (Constants?.expoConfig?.hostUri) {
+      if (API_CONFIG && API_CONFIG.AI_URL) {
+        apiUrl = `${API_CONFIG.AI_URL}/predict`;
+      } else if (Constants?.expoConfig?.hostUri) {
         const ip = Constants.expoConfig.hostUri.split(":")[0];
         apiUrl = `http://${ip}:5000/predict`;
       }

@@ -230,7 +230,7 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
           </ScrollView>
         </View>
 
-        {/* Recent Scans Section (พื้นหลังเทาอ่อนตามรูป) [cite: 17, 21] */}
+        {/* Recent Scans Section */}
         <View style={styles.recentScansArea}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Scans</Text>
@@ -238,26 +238,37 @@ export default function ProfileScreen({ onLogout, user, setUser, navigation }) {
               const rootNav = navigation.getParent?.()?.getParent?.() || navigation.getParent?.() || navigation;
               rootNav.navigate("ScanHistory", { user });
             }}>
-              <Text style={styles.viewAllText}>See History</Text>
+              <Text style={styles.seeMoreText}>See History</Text>
             </TouchableOpacity>
           </View>
-          {results.map((item) => (
-            <View key={item.id} style={styles.scanCard}>
-              <View style={styles.scanIconPlaceholder}>
-                {getCategoryIcon(item.material?.material_name)}
+
+          {loading ? (
+            <ActivityIndicator style={{ marginVertical: 20 }} color="#0F3D34" />
+          ) : (
+            results.map((item) => (
+              <View key={item.id} style={styles.scanCard}>
+                <View style={styles.scanIconBox}>
+                  {getCategoryIcon(item.material?.material_name)}
+                </View>
+
+                <View style={styles.scanDetails}>
+                  <Text style={styles.scanName}>
+                    {item.material?.material_name || "Unknown Item"}
+                  </Text>
+                  <Text style={styles.scanSub}>
+                    {item.material?.recycle || "Processing..."}
+                  </Text>
+                  <Text style={styles.scanTime}>
+                    {new Date(item.scan_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                </View>
+
+                <View style={styles.checkCircle}>
+                  <Ionicons name="checkmark" size={14} color="white" />
+                </View>
               </View>
-              <View style={styles.scanContent}>
-                <Text style={styles.scanMainName}>{item.material?.material_name || "Plastic Bottle (PET)"}</Text>
-                <Text style={styles.scanSubDetail}>{item.material?.recycle || "Resin Code 1 • Recyclable"}</Text>
-                <Text style={styles.scanDateText}>
-                  {new Date(item.scan_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-              </View>
-              <View style={styles.checkCircleBlack}>
-                <Ionicons name="checkmark" size={16} color="white" />
-              </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
 
         {/* Account Settings Section [cite: 29-40] */}
@@ -423,12 +434,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { 
     fontSize: 18, 
-    fontWeight: "600", 
-    color: "#004743" 
+    fontWeight: "bold", 
+    color: "#0F3D34" 
   },
-  viewAllText: { 
-    fontSize: 13, 
-    color: "#999" 
+  seeMoreText: { 
+    color: "#2B7A63", 
+    fontSize: 14 
   },
   achievementRow: { 
     flexDirection: "row", 
@@ -452,52 +463,52 @@ const styles = StyleSheet.create({
     textAlign: "center" 
   },
   recentScansArea: { 
-    backgroundColor: "#F9F9F9", 
-    paddingHorizontal: 20, 
-    
-    paddingVertical: 20 
+    backgroundColor: "#F6F8F7", 
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20 
   },
   scanCard: { 
     flexDirection: "row", 
     alignItems: "center", 
-    backgroundColor: "#FFF", 
+    backgroundColor: "#FFFFFF", 
     padding: 15, 
-    borderRadius: 12, 
+    borderRadius: 15, 
     borderWidth: 1, 
-    borderColor: "#EEE", 
+    borderColor: "#E4ECE8", 
     marginBottom: 12 
   },
-  scanIconPlaceholder: { 
-    width: 60, 
-    height: 60, 
-    backgroundColor: "#C7D7D6", 
-    borderRadius: 8, 
+  scanIconBox: { 
+    width: 55, 
+    height: 55, 
+    backgroundColor: "#EAF4F0", 
+    borderRadius: 12, 
     justifyContent: "center", 
     alignItems: "center" 
   },
-  scanContent: { 
+  scanDetails: { 
     flex: 1, 
     marginLeft: 15 
   },
-  scanMainName: { 
-    fontSize: 15, 
+  scanName: { 
     fontWeight: "bold", 
-    color: "#004743" 
+    fontSize: 15, 
+    color: "#0F3D34" 
   },
-  scanSubDetail: { 
+  scanSub: { 
     fontSize: 12, 
-    color: "#666", 
-    marginVertical: 3 
+    color: "#5E6E69", 
+    marginVertical: 2 
   },
-  scanDateText: { 
+  scanTime: { 
     fontSize: 11, 
-    color: "#999" 
+    color: "#98A59F" 
   },
-  checkCircleBlack: { 
-    width: 30, 
-    height: 30, 
-    borderRadius: 15, 
-    backgroundColor: "#16A34A", 
+  checkCircle: { 
+    width: 22, 
+    height: 22, 
+    borderRadius: 11, 
+    backgroundColor: "#1E6C5B", 
     justifyContent: "center", 
     alignItems: "center" 
   },

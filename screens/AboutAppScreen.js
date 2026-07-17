@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function AboutAppScreen({ navigation }) {
   return (
@@ -15,21 +15,23 @@ export default function AboutAppScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.logoContainer}>
-          <View style={styles.logoBox}>
-            <MaterialCommunityIcons name="leaf" size={60} color="#FFF" />
-          </View>
-          <Text style={styles.appName}>AItrash</Text>
+          <Image
+            source={require("../assets/LOGO.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.appName}>Recyt</Text>
           <Text style={styles.appVersion}>Version 1.0.0</Text>
         </View>
 
         <View style={styles.infoCard}>
           <Text style={styles.missionTitle}>Our Mission</Text>
           <Text style={styles.missionText}>
-            AItrash aims to revolutionize waste management by empowering individuals with an AI-powered sorting assistant. We believe that proper recycling starts with accurate classification, and together, we can reduce environmental impact and build a sustainable future.
+            Recyt aims to revolutionize waste management by empowering individuals with an AI-powered sorting assistant. We believe that proper recycling starts with accurate classification, and together, we can reduce environmental impact and build a sustainable future.
           </Text>
         </View>
 
-        <Text style={styles.copyright}>© 2026 AItrash Team. All rights reserved.</Text>
+        <Text style={styles.copyright}>© 2026 Recyt Team. All rights reserved.</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -42,7 +44,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: "bold", color: "#0F3D34" },
   content: { padding: 20, alignItems: "center" },
   logoContainer: { alignItems: "center", marginTop: 20, marginBottom: 40 },
-  logoBox: { width: 100, height: 100, borderRadius: 25, backgroundColor: "#1E6C5B", justifyContent: "center", alignItems: "center", elevation: 5, shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 10 },
+  logoImage: { width: 120, height: 120, borderRadius: 25 },
   appName: { fontSize: 24, fontWeight: "bold", color: "#0F3D34", marginTop: 15 },
   appVersion: { fontSize: 14, color: "#666", marginTop: 5 },
   infoCard: { width: "100%", backgroundColor: "#FFF", padding: 20, borderRadius: 15, marginBottom: 20 },

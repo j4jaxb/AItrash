@@ -37,9 +37,9 @@ app.post('/api/email/send-verification', async (req, res) => {
     }
 
     const mailOptions = {
-      from: `"recyte" <${emailConfig.auth.user}>`,
+      from: `"recyt" <${emailConfig.auth.user}>`,
       to: email,
-      subject: '📧 รหัสยืนยันของคุณ - recyte',
+      subject: '📧 รหัสยืนยันของคุณ - recyt',
       html: `
         <!DOCTYPE html>
         <html>
@@ -57,7 +57,7 @@ app.post('/api/email/send-verification', async (req, res) => {
           <body>
             <div class="container">
               <div class="header">
-                <h1 style="color: #2e7d32; margin: 0;">♻️ recyte</h1>
+                <h1 style="color: #2e7d32; margin: 0;">♻️ recyt</h1>
                 <p style="color: #4f5d33; margin: 5px 0;">แอปจัดการขยะและรีไซเคิลอย่างชาญฉลาด</p>
               </div>
               
@@ -68,7 +68,7 @@ app.post('/api/email/send-verification', async (req, res) => {
               <div class="code-box">${code}</div>
               
               <p style="color: #4f5d33; font-size: 14px;">
-                โปรดใช้รหัสนี้ในแอป recyte<br>
+                โปรดใช้รหัสนี้ในแอป recyt<br>
                 <strong>⏰ รหัสนี้จะหมดอายุใน 10 นาที</strong>
               </p>
               
@@ -77,7 +77,7 @@ app.post('/api/email/send-verification', async (req, res) => {
               </div>
               
               <div class="footer">
-                <p>© 2026 recyte. All rights reserved.</p>
+                <p>© 2026 recyt. All rights reserved.</p>
               </div>
             </div>
           </body>
@@ -114,17 +114,17 @@ app.post('/api/email/send-welcome', async (req, res) => {
     }
 
     const mailOptions = {
-      from: `"recyte" <${emailConfig.auth.user}>`,
+      from: `"recyt" <${emailConfig.auth.user}>`,
       to: email,
-      subject: '🎉 ยินดีต้อนรับสู่ recyte',
+      subject: '🎉 ยินดีต้อนรับสู่ recyt',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #e8f5e9;">
           <div style="max-width: 500px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.15);">
             <h1 style="color: #2e7d32;">🎉 ยินดีต้อนรับ ${firstName}!</h1>
             <p>บัญชีของคุณถูกสร้างเรียบร้อยแล้ว</p>
-            <p>คุณพร้อมที่จะเริ่มใช้ recyte เพื่อจัดการขยะและรีไซเคิลได้อย่างสะดวก</p>
+            <p>คุณพร้อมที่จะเริ่มใช้ recyt เพื่อจัดการขยะและรีไซเคิลได้อย่างสะดวก</p>
             <p style="margin-top: 30px; color: #4f5d33;">
-              หากมีคำถามใด ติดต่อเราได้ที่ support@recyte.com
+              หากมีคำถามใด ติดต่อเราได้ที่ support@recyt.com
             </p>
           </div>
         </div>
@@ -160,7 +160,7 @@ app.post('/api/email/send-support', async (req, res) => {
 
     // 1. ส่งอีเมลเข้ากล่องขาเข้าของ Support (เพื่อรับเรื่อง)
     const supportMailOptions = {
-      from: `"recyte" <${emailConfig.auth.user}>`,
+      from: `"recyt" <${emailConfig.auth.user}>`,
       to: emailConfig.auth.user, // ส่งหาตัวเอง (ทีมซัพพอร์ต)
       replyTo: userEmail, // ตั้งค่าให้กด Reply แล้วตอบกลับไปยังผู้ใช้
       subject: `🛑 [Support Ticket] จาก ${userName || userEmail}`,
@@ -169,14 +169,14 @@ app.post('/api/email/send-support', async (req, res) => {
 
     // 2. ส่งอีเมลยืนยันกลับไปยังผู้ใช้ (ว่าได้รับเรื่องแล้ว)
     const userMailOptions = {
-      from: `"recyte Support" <${emailConfig.auth.user}>`,
+      from: `"recyt Support" <${emailConfig.auth.user}>`,
       to: userEmail,
-      subject: '✅ เราได้รับข้อความของคุณแล้ว (recyte Support)',
+      subject: '✅ เราได้รับข้อความของคุณแล้ว (recyt Support)',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #e8f5e9;">
           <div style="max-width: 500px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(46, 125, 50, 0.15);">
             <h2 style="color: #2e7d32;">สวัสดี ${userName || ''}!</h2>
-            <p>เราได้รับข้อความของคุณเรียบร้อยแล้ว ทีมงาน recyte จะรีบตรวจสอบและตอบกลับภายในเร็วที่สุด</p>
+            <p>เราได้รับข้อความของคุณเรียบร้อยแล้ว ทีมงาน recyt จะรีบตรวจสอบและตอบกลับภายในเร็วที่สุด</p>
             <hr style="border: 0; border-top: 1px solid #c8e6c9; margin: 20px 0;">
             <p style="color: #4f5d33; font-size: 14px;">ข้อความของคุณ:</p>
             <blockquote style="border-left: 3px solid #2e7d32; padding-left: 10px; color: #555;">
@@ -228,7 +228,7 @@ app.get('/api/email/health', async (req, res) => {
  */
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'recyte Email Service',
+    message: 'recyt Email Service',
     endpoints: {
       'POST /api/email/send-verification': 'Send verification code',
       'POST /api/email/send-welcome': 'Send welcome email',
@@ -240,7 +240,7 @@ app.get('/', (req, res) => {
 
 // เริ่มต้น Server
 app.listen(PORT, () => {
-  console.log(`\n🚀 recyte Email Server running on port ${PORT}`);
+  console.log(`\n🚀 recyt Email Server running on port ${PORT}`);
   console.log(`📧 Email: ${emailConfig.auth.user}`);
   console.log(`\n📌 API URL: http://localhost:${PORT}\n`);
 });

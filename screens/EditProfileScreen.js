@@ -177,102 +177,176 @@ export default function EditProfileScreen({ route, navigation, user, setUser }) 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#333" />
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={24} color="#004743" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>แก้ไขโปรไฟล์</Text>
-        <View style={{ width: 28 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.inner}>
-
-        <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
-          {profileBase64 || profileUri ? (
-            <Image source={{ uri: profileBase64 || profileUri }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person" size={48} color="#fff" />
-              <Text style={styles.avatarLabel}>เพิ่มรูปโปรไฟล์</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>ชื่อ</Text>
-          <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>นามสกุล</Text>
-          <TextInput style={styles.input} value={lastName} onChangeText={setLastName} />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>รหัสผ่านเดิม</Text>
-          <TextInput style={styles.input} secureTextEntry value={oldPassword} onChangeText={setOldPassword} />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>รหัสผ่านใหม่ (ถ้าต้องการเปลี่ยน)</Text>
-          <TextInput style={styles.input} secureTextEntry value={newPassword} onChangeText={setNewPassword} />
-        </View>
-
-        {loading ? (
-          <View style={{ alignItems: 'center', marginTop: 20 }}>
-            <ActivityIndicator size="large" color="#059669" />
-            <Text style={{ marginTop: 10, color: '#059669', fontSize: 16, fontWeight: '500' }}>กำลังอัปเดตโปรไฟล์...</Text>
-          </View>
-        ) : (
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>บันทึก</Text>
+      <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>
+        <View style={styles.card}>
+          <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
+            {profileBase64 || profileUri ? (
+              <Image source={{ uri: profileBase64 || profileUri }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Ionicons name="person" size={50} color="#fff" />
+                <Text style={styles.avatarLabel}>เพิ่มรูปโปรไฟล์</Text>
+              </View>
+            )}
           </TouchableOpacity>
-        )}
+
+          <Text style={styles.sectionTitle}>ข้อมูลส่วนตัว</Text>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>ชื่อ</Text>
+            <TextInput
+              style={styles.input}
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="กรอกชื่อ"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>นามสกุล</Text>
+            <TextInput
+              style={styles.input}
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="กรอกนามสกุล"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>รหัสผ่านเดิม</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              value={oldPassword}
+              onChangeText={setOldPassword}
+              placeholder="กรอกรหัสผ่านเดิม"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>รหัสผ่านใหม่ (ถ้าต้องการเปลี่ยน)</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="กรอกรหัสผ่านใหม่"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          {loading ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="large" color="#0f766e" />
+              <Text style={styles.loadingText}>กำลังอัปเดตโปรไฟล์...</Text>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+              <Text style={styles.saveButtonText}>บันทึกข้อมูล</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#f4f7f2" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomColor: "#eef3ea",
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  inner: { padding: 20 },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#eef8f5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#004743" },
+  headerSpacer: { width: 40 },
+  inner: { padding: 20, paddingTop: 16, paddingBottom: 30 },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
-  avatarWrapper: { alignItems: "center", marginBottom: 20 },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  avatarWrapper: { alignItems: "center", marginBottom: 18 },
   avatar: { width: 120, height: 120, borderRadius: 60, resizeMode: "cover" },
   avatarPlaceholder: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "#aaa",
+    backgroundColor: "#0f766e",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 4,
+    borderColor: "#d7f3eb",
   },
-  avatarLabel: { color: "#fff", marginTop: 8, fontSize: 12 },
-  formGroup: { marginBottom: 16 },
-  label: { fontSize: 14, marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+  avatarLabel: { color: "#fff", marginTop: 8, fontSize: 12, fontWeight: "600" },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#004743",
+    marginBottom: 14,
+    textAlign: "center",
+  },
+  formGroup: {
+    marginBottom: 14,
+    backgroundColor: "#f8fbf8",
+    borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "#e7efe8",
+  },
+  label: { fontSize: 13, marginBottom: 6, color: "#0f766e", fontWeight: "800" },
+  input: {
+    borderWidth: 0,
+    paddingVertical: 6,
     fontSize: 16,
+    color: "#111827",
   },
+  loadingBox: { alignItems: "center", marginTop: 16, paddingVertical: 12 },
+  loadingText: { marginTop: 10, color: "#0f766e", fontSize: 15, fontWeight: "600" },
   saveButton: {
-    backgroundColor: "#059669",
-    padding: 14,
-    borderRadius: 8,
+    flexDirection: "row",
+    backgroundColor: "#0f766e",
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: "center",
+    justifyContent: "center",
     marginTop: 10,
+    shadowColor: "#0f766e",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  saveButtonText: { color: "#fff", fontWeight: "700", fontSize: 16, marginLeft: 8 },
 });

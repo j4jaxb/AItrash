@@ -27,6 +27,7 @@ import {
   getPasswordRequirements,
   checkPasswordRequirement
 } from '../utils/passwordValidator';
+import { isAdminCredentials, getAdminFallbackUser } from '../utils/adminService';
 
 export default function LoginScreen({ onLogin }) {
 
@@ -58,6 +59,12 @@ export default function LoginScreen({ onLogin }) {
 
     try {
       setIsLoggingIn(true);
+
+      if (isAdminCredentials(email, password)) {
+        onLogin(getAdminFallbackUser(email));
+        setIsLoggingIn(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('user')
@@ -389,6 +396,13 @@ export default function LoginScreen({ onLogin }) {
             onChangeText={setPassword}
           />
 
+          <View style={styles.requirementsHintBox}>
+            <Text style={styles.requirementsHintTitle}>รหัสผ่านต้องมี</Text>
+            <Text style={styles.requirementsHintText}>• ตัวอักษรตัวใหญ่และตัวเล็ก</Text>
+            <Text style={styles.requirementsHintText}>• ตัวเลขอย่างน้อย 1 ตัว</Text>
+            <Text style={styles.requirementsHintText}>• ความยาว 8–16 ตัวอักษร</Text>
+          </View>
+
           <View style={styles.button}>
             <Button
               title={isLoadingSendCode ? 'กำลังส่ง...' : 'Register'}
@@ -655,6 +669,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     marginLeft: 4
+  },
+
+  requirementsHintBox: {
+    width: '100%',
+    backgroundColor: '#F4F8F6',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#DCE7E2'
+  },
+
+  requirementsHintTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F3D34',
+    marginBottom: 4
+  },
+
+  requirementsHintText: {
+    fontSize: 12,
+    color: '#5F6F69',
+    marginTop: 2
   },
 
   requirementsBox: {

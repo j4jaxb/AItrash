@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { API_CONFIG } from './config';
 
 /**
  * Email Service - เรียก Backend API เพื่อส่งอีเมล
@@ -13,6 +14,10 @@ import Constants from 'expo-constants';
 const CUSTOM_API_HOST = ''; // ถ้าใช้มือถือจริง ให้กรอก IP ของพีซี เช่น 'http://192.168.43.123:5001'
 
 const getApiBaseUrl = () => {
+  if (API_CONFIG && API_CONFIG.EMAIL_URL) {
+    return API_CONFIG.EMAIL_URL;
+  }
+
   if (process.env.REACT_APP_API_URL) {
     return process.env.REACT_APP_API_URL;
   }

@@ -46,10 +46,10 @@ export default function PrivacyConsentScreen({ navigation, onConsent, onCancel }
 
           <View style={styles.consentCard}>
             <Text style={styles.contentText}>
-              ก่อนใช้งาน AItrash กรุณาอ่านและยอมรับข้อกำหนดการใช้งาน{"\n\n"}
+              ก่อนใช้งาน Recyt กรุณาอ่านและยอมรับข้อกำหนดการใช้งาน{"\n\n"}
               • ใช้งานแอปตามวัตถุประสงค์ที่กำหนด{"\n"}
               • ไม่ใช้แอปในกิจกรรมที่ผิดกฎหมายหรือส่งผลกระทบต่อระบบ{"\n"}
-              • AItrash ขอสงวนสิทธิ์ในการระงับบัญชี หากพบการละเมิดข้อกำหนด
+              • Recyt ขอสงวนสิทธิ์ในการระงับบัญชี หากพบการละเมิดข้อกำหนด
             </Text>
 
             <TouchableOpacity
@@ -79,7 +79,7 @@ export default function PrivacyConsentScreen({ navigation, onConsent, onCancel }
 
           <View style={styles.consentCard}>
             <Text style={styles.contentText}>
-              AItrash ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้งาน{"\n\n"}
+              Recyt ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้งาน{"\n\n"}
 
               ข้อมูลที่อาจมีการเก็บรวบรวม ได้แก่{"\n"}
               • ข้อมูลบัญชี เช่น ชื่อ และอีเมล{"\n"}
@@ -89,7 +89,7 @@ export default function PrivacyConsentScreen({ navigation, onConsent, onCancel }
               ข้อมูลเหล่านี้ใช้เพื่อปรับปรุงประสิทธิภาพของระบบ{"\n"}
               พัฒนาฟีเจอร์ และเพิ่มประสบการณ์การใช้งานให้ดีขึ้น{"\n\n"}
 
-              AItrash ไม่มีการจำหน่ายข้อมูลส่วนบุคคลให้กับบุคคลภายนอก
+              Recyt ไม่มีการจำหน่ายข้อมูลส่วนบุคคลให้กับบุคคลภายนอก
             </Text>
 
             <TouchableOpacity
@@ -119,7 +119,7 @@ export default function PrivacyConsentScreen({ navigation, onConsent, onCancel }
 
           <View style={styles.consentCard}>
             <Text style={styles.contentText}>
-              การอนุญาตให้ใช้ข้อมูลช่วยให้ AItrash สามารถพัฒนาแอป
+              การอนุญาตให้ใช้ข้อมูลช่วยให้ Recyt สามารถพัฒนาแอป
               และปรับปรุงระบบ AI ได้อย่างมีประสิทธิภาพมากขึ้น{"\n\n"}
 
               ข้อมูลอาจถูกนำไปใช้เพื่อ{"\n"}
@@ -141,7 +141,7 @@ export default function PrivacyConsentScreen({ navigation, onConsent, onCancel }
               </View>
 
               <Text style={styles.checkboxLabel}>
-                ฉันอนุญาตให้ AItrash ใช้ข้อมูลเพื่อพัฒนาแอป
+                ฉันอนุญาตให้ Recyt ใช้ข้อมูลเพื่อพัฒนาแอป
               </Text>
             </TouchableOpacity>
           </View>

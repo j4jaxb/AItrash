@@ -9,6 +9,7 @@ import {
   Modal,
   FlatList,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { recordGamePlay } from "../utils/gameService";
@@ -93,8 +94,9 @@ export default function MemoryGameScreen({ navigation, user }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [previewing, setPreviewing] = useState(false);
-  const [previewSeconds, setPreviewSeconds] = useState(3);
+  const [previewSeconds, setPreviewSeconds] = useState(5);
   const [showWinModal, setShowWinModal] = useState(false);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(true);
 
   // เริ่มต้นเกมใหม่
   const initGame = () => {
@@ -178,13 +180,17 @@ export default function MemoryGameScreen({ navigation, user }) {
 
   useEffect(() => {
     initGame();
+    const timer = setTimeout(() => {
+      setIsLoadingAssets(false);
+    }, 3000);
+    return () => clearTimeout(timer);
   }, []);
 
   const startGame = () => {
     if (gameStarted) return;
     setGameStarted(true);
     setPreviewing(true);
-    setPreviewSeconds(3);
+    setPreviewSeconds(5);
 
     const previewCards = cards.map((card) => ({ ...card, isFlipped: true }));
     setCards(previewCards);
@@ -293,6 +299,28 @@ export default function MemoryGameScreen({ navigation, user }) {
     );
   };
 
+  if (isLoadingAssets) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.backBtn}
+          >
+            <Ionicons name="arrow-back" size={24} color="#0F3D34" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>เตรียมความพร้อม...</Text>
+          <View style={{ width: 34 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+          <ActivityIndicator size="large" color="#1E6C5B" style={{ marginBottom: 15 }} />
+          <Text style={{ fontSize: 16, color: '#0F3D34', fontWeight: 'bold' }}>กำลังโหลดรูปภาพและโมเดล...</Text>
+          <Text style={{ fontSize: 12, color: '#8E9B96', marginTop: 5 }}>กรุณารอสักครู่เพื่อประสิทธิภาพสูงสุด</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
@@ -311,7 +339,7 @@ export default function MemoryGameScreen({ navigation, user }) {
         <View style={styles.startScreenContainer}>
           <View style={styles.startContainer}>
             <Text style={styles.startLabel}>Memory Match</Text>
-            <Text style={styles.startNote}>Press START to preview all cards for 3 seconds.</Text>
+            <Text style={styles.startNote}>Press START to preview all cards for 5 seconds.</Text>
             <TouchableOpacity
               style={styles.startBtn}
               onPress={startGame}
@@ -394,6 +422,16 @@ export default function MemoryGameScreen({ navigation, user }) {
           </View>
         </View>
       </Modal>
+
+      {/* Hidden preloader container to cache images */}
+      <View style={{ position: 'absolute', top: 9999, left: 9999, width: 1, height: 1, overflow: 'hidden' }}>
+        {Object.values(CARD_REFERENCE_SOURCES).map((src, i) => (
+          <Image key={`ref-${i}`} source={src} style={{ width: 100, height: 100 }} />
+        ))}
+        {Object.values(CARD_IMAGE_SOURCES).flatMap(arr => arr).map((src, i) => (
+          <Image key={`img-${i}`} source={src} style={{ width: 100, height: 100 }} />
+        ))}
+      </View>
     </SafeAreaView>
   );
 }

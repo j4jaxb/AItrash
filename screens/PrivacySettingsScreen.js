@@ -193,7 +193,7 @@ export default function PrivacySettingsScreen({ navigation, user, setUser }) {
             />
 
             <Text style={styles.infoTitle}>
-              ข้อมูลที่ AItrash เก็บรวบรวม
+              ข้อมูลที่ Recyt เก็บรวบรวม
             </Text>
 
           </View>

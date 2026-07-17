@@ -24,6 +24,10 @@ import TrashCatcherGameScreen from './screens/TrashCatcherGameScreen';
 import MemoryGameScreen from './screens/MemoryGameScreen';
 import PlasticGuideScreen from './screens/PlasticGuideScreen';
 import PrivacyConsentScreen from './screens/PrivacyConsentScreen';
+import AdminScreen from './screens/AdminScreen';
+import AdminUserDetailScreen from './screens/AdminUserDetailScreen';
+import AdminSupportDetailScreen from './screens/AdminSupportDetailScreen';
+import { isAdminUser } from './utils/adminService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -101,6 +105,24 @@ export default function App() {
 
   if (!user) {
     return <LoginScreen onLogin={setUser} />;
+  }
+
+  if (isAdminUser(user)) {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="AdminPanel">
+            {(props) => <AdminScreen {...props} user={user} setUser={setUser} />}
+          </Stack.Screen>
+          <Stack.Screen name="AdminUserDetail">
+            {(props) => <AdminUserDetailScreen {...props} setUser={setUser} />}
+          </Stack.Screen>
+          <Stack.Screen name="AdminSupportDetail">
+            {(props) => <AdminSupportDetailScreen {...props} setUser={setUser} />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
   }
 
   return (

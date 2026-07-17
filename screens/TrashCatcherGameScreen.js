@@ -8,6 +8,7 @@ import {
   Dimensions,
   Image,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { recordGamePlay } from "../utils/gameService";
@@ -115,14 +116,12 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
     setIsConfirming(false);
     setIsPlaying(true);
     setCountdown(3);
-    
+
     let count = 3;
     countdownInterval.current = setInterval(() => {
       count -= 1;
       if (count > 0) {
         setCountdown(count);
-      } else if (count === 0) {
-        setCountdown("เริ่ม!");
       } else {
         clearInterval(countdownInterval.current);
         setCountdown(null);
@@ -132,11 +131,17 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
   };
 
   const startGamePlayLoops = () => {
+    clearInterval(gameInterval.current);
+    clearInterval(spawnInterval.current);
+
+    // เริ่มให้ขยะปรากฏทันทีเพื่อให้เกมดูมีชีวิตชีวาและไม่ต้องรอ
+    spawnTrash();
+
     // เกมลูปอัปเดตตำแหน่งขยะและการหมุน (60 FPS)
     gameInterval.current = setInterval(updatePhysics, 1000 / 60);
 
     // สุ่มเกิดขยะถี่ขึ้น 3 เท่าจากเดิมทุกๆ 0.2 วินาที (200ms) ตามคำขอ
-    spawnInterval.current = setInterval(spawnTrash, 200);
+    spawnInterval.current = setInterval(spawnTrash, 180);
   };
 
   const stopGame = () => {
@@ -149,7 +154,9 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
   };
 
   useEffect(() => {
-    return () => stopGame();
+    return () => {
+      stopGame();
+    };
   }, []);
 
   // เกิดขยะใหม่หล่นจากด้านบนพร้อมมุมการหมุนและการสุ่มดีไซน์
@@ -378,6 +385,13 @@ export default function TrashCatcherGameScreen({ navigation, user }) {
           </View>
         </View>
       </Modal>
+
+      {/* Hidden preloader container to cache images */}
+      <View style={{ position: 'absolute', top: 9999, left: 9999, width: 1, height: 1, overflow: 'hidden' }}>
+        {Object.values(TRASH_IMAGES).flatMap(arr => arr).map((src, i) => (
+          <Image key={`trash-${i}`} source={src} style={{ width: 100, height: 100 }} />
+        ))}
+      </View>
     </SafeAreaView>
   );
 }
